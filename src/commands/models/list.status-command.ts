@@ -487,8 +487,8 @@ export async function modelsStatusCommand(
     for (const provider of missingProvidersInUse) {
       const hint =
         provider === "anthropic"
-          ? `Run \`claude setup-token\`, then \`${formatCliCommand("clawdbot models auth setup-token")}\` or \`${formatCliCommand("clawdbot configure")}\`.`
-          : `Run \`${formatCliCommand("clawdbot configure")}\` or set an API key env var.`;
+          ? `Run \`claude setup-token\`, then \`${formatCliCommand("floo models auth setup-token")}\` or \`${formatCliCommand("floo configure")}\`.`
+          : `Run \`${formatCliCommand("floo configure")}\` or set an API key env var.`;
       runtime.log(`- ${theme.heading(provider)} ${hint}`);
     }
   }

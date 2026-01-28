@@ -139,7 +139,7 @@ export async function promptGatewayConfig(
   let tailscaleResetOnExit = false;
   if (tailscaleMode !== "off") {
     note(
-      ["Docs:", "https://docs.clawd.bot/gateway/tailscale", "https://docs.clawd.bot/web"].join(
+      ["Docs:", "https://docs.floo.africa/gateway/tailscale", "https://docs.floo.africa/web"].join(
         "\n",
       ),
       "Tailscale",

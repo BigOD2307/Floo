@@ -20,7 +20,7 @@ import { addGatewayClientOptions } from "./gateway-rpc.js";
 export function registerBrowserCli(program: Command) {
   const browser = program
     .command("browser")
-    .description("Manage clawd's dedicated browser (Chrome/Chromium)")
+    .description("Gerer le navigateur dedie de Floo (Chrome/Chromium)")
     .option("--browser-profile <name>", "Browser profile name (default from config)")
     .option("--json", "Output machine-readable JSON", false)
     .addHelpText(
@@ -31,13 +31,13 @@ export function registerBrowserCli(program: Command) {
           true,
         )}\n\n${theme.muted("Docs:")} ${formatDocsLink(
           "/cli/browser",
-          "docs.clawd.bot/cli/browser",
+          "docs.floo.africa/cli/browser",
         )}\n`,
     )
     .action(() => {
       browser.outputHelp();
       defaultRuntime.error(
-        danger(`Missing subcommand. Try: "${formatCliCommand("clawdbot browser status")}"`),
+        danger(`Sous-commande manquante. Essaie: "${formatCliCommand("floo browser status")}"`),
       );
       defaultRuntime.exit(1);
     });

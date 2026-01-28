@@ -1,0 +1,51 @@
+{
+  "$schema": "./dist/config.schema.json",
+  "_comment": "Floo - Assistant IA personnel pour professionnels africains",
+
+  "agent": {
+    "defaultModel": "openai/gpt-4o",
+    "contextTokens": 128000,
+    "thinkingLevel": "low"
+  },
+
+  "auth": {
+    "profiles": {
+      "openai-main": {
+        "provider": "openai",
+        "mode": "api_key"
+      }
+    },
+    "order": {
+      "openai": ["openai-main"]
+    }
+  },
+
+  "channels": {
+    "whatsapp": {
+      "enabled": true,
+      "dmPolicy": "open",
+      "groupPolicy": "disabled",
+      "accounts": {
+        "default": {
+          "enabled": true,
+          "allowFrom": ["*"]
+        }
+      }
+    }
+  },
+
+  "gateway": {
+    "mode": "local",
+    "port": 18789
+  },
+
+  "identity": {
+    "name": "Floo",
+    "timezone": "Africa/Abidjan"
+  },
+
+  "messages": {
+    "ackReaction": true,
+    "ackReactionEmoji": "eyes"
+  }
+}

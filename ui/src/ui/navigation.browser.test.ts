@@ -169,7 +169,7 @@ describe("control UI routing", () => {
 
   it("hydrates token from URL params even when settings already set", async () => {
     localStorage.setItem(
-      "clawdbot.control.settings.v1",
+      "floo.control.settings.v1",
       JSON.stringify({ token: "existing-token" }),
     );
     const app = mountApp("/ui/overview?token=abc123");

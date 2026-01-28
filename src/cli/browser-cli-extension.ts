@@ -90,7 +90,7 @@ export function registerBrowserExtensionCommands(
             `- “Load unpacked” → select: ${displayPath}`,
             `- Pin “Clawdbot Browser Relay”, then click it on the tab (badge shows ON)`,
             "",
-            `${theme.muted("Docs:")} ${formatDocsLink("/tools/chrome-extension", "docs.clawd.bot/tools/chrome-extension")}`,
+            `${theme.muted("Docs:")} ${formatDocsLink("/tools/chrome-extension", "docs.floo.africa/tools/chrome-extension")}`,
           ].join("\n"),
         ),
       );
@@ -106,8 +106,8 @@ export function registerBrowserExtensionCommands(
         defaultRuntime.error(
           danger(
             [
-              `Chrome extension is not installed. Run: "${formatCliCommand("clawdbot browser extension install")}"`,
-              `Docs: ${formatDocsLink("/tools/chrome-extension", "docs.clawd.bot/tools/chrome-extension")}`,
+              `Chrome extension is not installed. Run: "${formatCliCommand("floo browser extension install")}"`,
+              `Docs: ${formatDocsLink("/tools/chrome-extension", "docs.floo.africa/tools/chrome-extension")}`,
             ].join("\n"),
           ),
         );

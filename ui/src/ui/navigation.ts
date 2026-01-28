@@ -177,7 +177,7 @@ export function subtitleForTab(tab: Tab) {
     case "chat":
       return "Direct gateway chat session for quick interventions.";
     case "config":
-      return "Edit ~/.clawdbot/clawdbot.json safely.";
+      return "Modifier ~/.floo/floo.json en toute securite.";
     case "debug":
       return "Gateway snapshots, events, and manual RPC calls.";
     case "logs":

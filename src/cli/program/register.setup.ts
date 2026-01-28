@@ -10,15 +10,15 @@ import { runCommandWithRuntime } from "../cli-utils.js";
 export function registerSetupCommand(program: Command) {
   program
     .command("setup")
-    .description("Initialize ~/.clawdbot/clawdbot.json and the agent workspace")
+    .description("Initialiser ~/.floo/floo.json et l'espace de travail de l'agent")
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/setup", "docs.clawd.bot/cli/setup")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/setup", "docs.floo.africa/cli/setup")}\n`,
     )
     .option(
       "--workspace <dir>",
-      "Agent workspace directory (default: ~/clawd; stored as agents.defaults.workspace)",
+      "Repertoire de l'agent (defaut: ~/floo; stocke dans agents.defaults.workspace)",
     )
     .option("--wizard", "Run the interactive onboarding wizard", false)
     .option("--non-interactive", "Run the wizard without prompts", false)

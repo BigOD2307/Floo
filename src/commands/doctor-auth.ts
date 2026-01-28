@@ -113,7 +113,7 @@ export async function maybeRemoveDeprecatedCliAuthProfiles(
   const lines = ["Deprecated external CLI auth profiles detected (no longer supported):"];
   if (deprecated.has(CLAUDE_CLI_PROFILE_ID)) {
     lines.push(
-      `- ${CLAUDE_CLI_PROFILE_ID} (Anthropic): use setup-token → ${formatCliCommand("clawdbot models auth setup-token")}`,
+      `- ${CLAUDE_CLI_PROFILE_ID} (Anthropic): use setup-token → ${formatCliCommand("floo models auth setup-token")}`,
     );
   }
   if (deprecated.has(CODEX_CLI_PROFILE_ID)) {
@@ -190,16 +190,16 @@ type AuthIssue = {
 
 function formatAuthIssueHint(issue: AuthIssue): string | null {
   if (issue.provider === "anthropic" && issue.profileId === CLAUDE_CLI_PROFILE_ID) {
-    return `Deprecated profile. Use ${formatCliCommand("clawdbot models auth setup-token")} or ${formatCliCommand(
+    return `Deprecated profile. Use ${formatCliCommand("floo models auth setup-token")} or ${formatCliCommand(
       "clawdbot configure",
     )}.`;
   }
   if (issue.provider === "openai-codex" && issue.profileId === CODEX_CLI_PROFILE_ID) {
     return `Deprecated profile. Use ${formatCliCommand(
       "clawdbot models auth login --provider openai-codex",
-    )} or ${formatCliCommand("clawdbot configure")}.`;
+    )} or ${formatCliCommand("floo configure")}.`;
   }
-  return `Re-auth via \`${formatCliCommand("clawdbot configure")}\` or \`${formatCliCommand("clawdbot onboard")}\`.`;
+  return `Re-auth via \`${formatCliCommand("floo configure")}\` or \`${formatCliCommand("floo onboard")}\`.`;
 }
 
 function formatAuthIssueLine(issue: AuthIssue): string {

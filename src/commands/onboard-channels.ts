@@ -188,7 +188,7 @@ async function noteChannelPrimer(
   await prompter.note(
     [
       "DM security: default is pairing; unknown DMs get a pairing code.",
-      `Approve with: ${formatCliCommand("clawdbot pairing approve <channel> <code>")}`,
+      `Approve with: ${formatCliCommand("floo pairing approve <channel> <code>")}`,
       'Public DMs require dmPolicy="open" + allowFrom=["*"].',
       'Multi-user DMs: set session.dmScope="per-channel-peer" to isolate sessions.',
       `Docs: ${formatDocsLink("/start/pairing", "start/pairing")}`,
@@ -584,7 +584,7 @@ export async function setupChannels(
         {
           value: "__skip__",
           label: "Skip for now",
-          hint: `You can add channels later via \`${formatCliCommand("clawdbot channels add")}\``,
+          hint: `You can add channels later via \`${formatCliCommand("floo channels add")}\``,
         },
       ],
       initialValue: quickstartDefault,

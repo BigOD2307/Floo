@@ -12,7 +12,7 @@ function isAbsoluteHttp(url: string): boolean {
 function enhanceBrowserFetchError(url: string, err: unknown, timeoutMs: number): Error {
   const hint = isAbsoluteHttp(url)
     ? "If this is a sandboxed session, ensure the sandbox browser is running and try again."
-    : `Start (or restart) the Clawdbot gateway (Clawdbot.app menubar, or \`${formatCliCommand("clawdbot gateway")}\`) and try again.`;
+    : `Start (or restart) the Clawdbot gateway (Clawdbot.app menubar, or \`${formatCliCommand("floo gateway")}\`) and try again.`;
   const msg = String(err);
   const msgLower = msg.toLowerCase();
   const looksLikeTimeout =

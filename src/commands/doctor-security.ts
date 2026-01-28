@@ -10,7 +10,7 @@ import { isLoopbackHost, resolveGatewayBindHost } from "../gateway/net.js";
 
 export async function noteSecurityWarnings(cfg: ClawdbotConfig) {
   const warnings: string[] = [];
-  const auditHint = `- Run: ${formatCliCommand("clawdbot security audit --deep")}`;
+  const auditHint = `- Run: ${formatCliCommand("floo security audit --deep")}`;
 
   // ===========================================
   // GATEWAY NETWORK EXPOSURE CHECK
@@ -48,11 +48,11 @@ export async function noteSecurityWarnings(cfg: ClawdbotConfig) {
       const authFixLines =
         resolvedAuth.mode === "password"
           ? [
-              `  Fix: ${formatCliCommand("clawdbot configure")} to set a password`,
-              `  Or switch to token: ${formatCliCommand("clawdbot config set gateway.auth.mode token")}`,
+              `  Fix: ${formatCliCommand("floo configure")} to set a password`,
+              `  Or switch to token: ${formatCliCommand("floo config set gateway.auth.mode token")}`,
             ]
           : [
-              `  Fix: ${formatCliCommand("clawdbot doctor --fix")} to generate a token`,
+              `  Fix: ${formatCliCommand("floo doctor --fix")} to generate a token`,
               `  Or set token directly: ${formatCliCommand(
                 "clawdbot config set gateway.auth.mode token",
               )}`,
@@ -60,7 +60,7 @@ export async function noteSecurityWarnings(cfg: ClawdbotConfig) {
       warnings.push(
         `- CRITICAL: Gateway bound to ${bindDescriptor} without authentication.`,
         `  Anyone on your network (or internet if port-forwarded) can fully control your agent.`,
-        `  Fix: ${formatCliCommand("clawdbot config set gateway.bind loopback")}`,
+        `  Fix: ${formatCliCommand("floo config set gateway.bind loopback")}`,
         ...authFixLines,
       );
     } else {

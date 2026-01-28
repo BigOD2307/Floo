@@ -2,7 +2,7 @@
 
 Small persona swap hook for Clawdbot.
 
-Docs: https://docs.clawd.bot/hooks/soul-evil
+Docs: https://docs.floo.africa/hooks/soul-evil
 
 ## Setup
 

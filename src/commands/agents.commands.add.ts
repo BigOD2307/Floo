@@ -326,7 +326,7 @@ export async function agentsAddCommand(
         await prompter.note(
           [
             "Routing unchanged. Add bindings when you're ready.",
-            "Docs: https://docs.clawd.bot/concepts/multi-agent",
+            "Docs: https://docs.floo.africa/concepts/multi-agent",
           ].join("\n"),
           "Routing",
         );

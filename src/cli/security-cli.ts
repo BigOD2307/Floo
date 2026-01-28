@@ -34,7 +34,7 @@ export function registerSecurityCli(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/security", "docs.clawd.bot/cli/security")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/security", "docs.floo.africa/cli/security")}\n`,
     );
 
   security
@@ -68,10 +68,10 @@ export function registerSecurityCli(program: Command) {
       const lines: string[] = [];
       lines.push(heading("Clawdbot security audit"));
       lines.push(muted(`Summary: ${formatSummary(report.summary)}`));
-      lines.push(muted(`Run deeper: ${formatCliCommand("clawdbot security audit --deep")}`));
+      lines.push(muted(`Run deeper: ${formatCliCommand("floo security audit --deep")}`));
 
       if (opts.fix) {
-        lines.push(muted(`Fix: ${formatCliCommand("clawdbot security audit --fix")}`));
+        lines.push(muted(`Fix: ${formatCliCommand("floo security audit --fix")}`));
         if (!fixResult) {
           lines.push(muted("Fixes: failed to apply (unexpected error)"));
         } else if (

@@ -100,7 +100,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean })
     }
     defaultRuntime.error(
       warnText(
-        `Recommendation: run "${formatCliCommand("clawdbot doctor")}" (or "${formatCliCommand("clawdbot doctor --repair")}").`,
+        `Recommendation: run "${formatCliCommand("floo doctor")}" (or "${formatCliCommand("floo doctor --repair")}").`,
       ),
     );
   }
@@ -134,7 +134,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean })
       );
       defaultRuntime.error(
         errorText(
-          `Fix: rerun \`${formatCliCommand("clawdbot gateway install --force")}\` from the same --profile / CLAWDBOT_STATE_DIR you expect.`,
+          `Fix: rerun \`${formatCliCommand("floo gateway install --force")}\` from the same --profile / CLAWDBOT_STATE_DIR you expect.`,
         ),
       );
     }
@@ -236,9 +236,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean })
         `LaunchAgent label cached but plist missing. Clear with: launchctl bootout gui/$UID/${labelValue}`,
       ),
     );
-    defaultRuntime.error(
-      errorText(`Then reinstall: ${formatCliCommand("clawdbot gateway install")}`),
-    );
+    defaultRuntime.error(errorText(`Then reinstall: ${formatCliCommand("floo gateway install")}`));
     spacer();
   }
 
@@ -292,7 +290,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean })
     for (const svc of legacyServices) {
       defaultRuntime.error(`- ${errorText(svc.label)} (${svc.detail})`);
     }
-    defaultRuntime.error(errorText(`Cleanup: ${formatCliCommand("clawdbot doctor")}`));
+    defaultRuntime.error(errorText(`Cleanup: ${formatCliCommand("floo doctor")}`));
     spacer();
   }
 
@@ -321,6 +319,6 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean })
     spacer();
   }
 
-  defaultRuntime.log(`${label("Troubles:")} run ${formatCliCommand("clawdbot status")}`);
-  defaultRuntime.log(`${label("Troubleshooting:")} https://docs.clawd.bot/troubleshooting`);
+  defaultRuntime.log(`${label("Troubles:")} run ${formatCliCommand("floo status")}`);
+  defaultRuntime.log(`${label("Troubleshooting:")} https://docs.floo.africa/troubleshooting`);
 }

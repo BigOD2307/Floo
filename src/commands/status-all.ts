@@ -372,7 +372,7 @@ export async function statusAllCommand(
         Item: "Gateway",
         Value: `${gatewayMode}${remoteUrlMissing ? " (remote.url missing)" : ""} · ${gatewayTarget} (${connection.urlSource}) · ${gatewayStatus}${gatewayAuth}`,
       },
-      { Item: "Security", Value: `Run: ${formatCliCommand("clawdbot security audit --deep")}` },
+      { Item: "Security", Value: `Run: ${formatCliCommand("floo security audit --deep")}` },
       gatewaySelfLine
         ? { Item: "Gateway self", Value: gatewaySelfLine }
         : { Item: "Gateway self", Value: "unknown" },

@@ -68,7 +68,7 @@ ${formatHelpExamples([
   ],
 ])}
 
-${theme.muted("Docs:")} ${formatDocsLink("/cli/agent", "docs.clawd.bot/cli/agent")}`,
+${theme.muted("Docs:")} ${formatDocsLink("/cli/agent", "docs.floo.africa/cli/agent")}`,
     )
     .action(async (opts) => {
       const verboseLevel = typeof opts.verbose === "string" ? opts.verbose.toLowerCase() : "";
@@ -86,7 +86,7 @@ ${theme.muted("Docs:")} ${formatDocsLink("/cli/agent", "docs.clawd.bot/cli/agent
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/agents", "docs.clawd.bot/cli/agents")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/agents", "docs.floo.africa/cli/agents")}\n`,
     );
 
   agents
@@ -156,10 +156,10 @@ ${theme.muted("Docs:")} ${formatDocsLink("/cli/agent", "docs.clawd.bot/cli/agent
 ${theme.heading("Examples:")}
 ${formatHelpExamples([
   ['clawdbot agents set-identity --agent main --name "Clawd" --emoji "🦞"', "Set name + emoji."],
-  ["clawdbot agents set-identity --agent main --avatar avatars/clawd.png", "Set avatar path."],
-  ["clawdbot agents set-identity --workspace ~/clawd --from-identity", "Load from IDENTITY.md."],
+  ["floo agents set-identity --agent main --avatar avatars/clawd.png", "Set avatar path."],
+  ["floo agents set-identity --workspace ~/clawd --from-identity", "Load from IDENTITY.md."],
   [
-    "clawdbot agents set-identity --identity-file ~/clawd/IDENTITY.md --agent main",
+    "floo agents set-identity --identity-file ~/clawd/IDENTITY.md --agent main",
     "Use a specific IDENTITY.md.",
   ],
 ])}

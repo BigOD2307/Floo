@@ -17,16 +17,16 @@ export const isNixMode = resolveIsNixMode();
 
 /**
  * State directory for mutable data (sessions, logs, caches).
- * Can be overridden via CLAWDBOT_STATE_DIR environment variable.
- * Default: ~/.clawdbot
+ * Can be overridden via FLOO_STATE_DIR environment variable.
+ * Default: ~/.floo
  */
 export function resolveStateDir(
   env: NodeJS.ProcessEnv = process.env,
   homedir: () => string = os.homedir,
 ): string {
-  const override = env.CLAWDBOT_STATE_DIR?.trim();
+  const override = env.FLOO_STATE_DIR?.trim() || env.CLAWDBOT_STATE_DIR?.trim();
   if (override) return resolveUserPath(override);
-  return path.join(homedir(), ".clawdbot");
+  return path.join(homedir(), ".floo");
 }
 
 function resolveUserPath(input: string): string {
@@ -43,16 +43,16 @@ export const STATE_DIR_CLAWDBOT = resolveStateDir();
 
 /**
  * Config file path (JSON5).
- * Can be overridden via CLAWDBOT_CONFIG_PATH environment variable.
- * Default: ~/.clawdbot/clawdbot.json (or $CLAWDBOT_STATE_DIR/clawdbot.json)
+ * Can be overridden via FLOO_CONFIG_PATH environment variable.
+ * Default: ~/.floo/floo.json (or $FLOO_STATE_DIR/floo.json)
  */
 export function resolveConfigPath(
   env: NodeJS.ProcessEnv = process.env,
   stateDir: string = resolveStateDir(env, os.homedir),
 ): string {
-  const override = env.CLAWDBOT_CONFIG_PATH?.trim();
+  const override = env.FLOO_CONFIG_PATH?.trim() || env.CLAWDBOT_CONFIG_PATH?.trim();
   if (override) return resolveUserPath(override);
-  return path.join(stateDir, "clawdbot.json");
+  return path.join(stateDir, "floo.json");
 }
 
 export const CONFIG_PATH_CLAWDBOT = resolveConfigPath();
@@ -61,12 +61,12 @@ export const DEFAULT_GATEWAY_PORT = 18789;
 
 /**
  * Gateway lock directory (ephemeral).
- * Default: os.tmpdir()/clawdbot-<uid> (uid suffix when available).
+ * Default: os.tmpdir()/floo-<uid> (uid suffix when available).
  */
 export function resolveGatewayLockDir(tmpdir: () => string = os.tmpdir): string {
   const base = tmpdir();
   const uid = typeof process.getuid === "function" ? process.getuid() : undefined;
-  const suffix = uid != null ? `clawdbot-${uid}` : "clawdbot";
+  const suffix = uid != null ? `floo-${uid}` : "floo";
   return path.join(base, suffix);
 }
 
@@ -76,15 +76,15 @@ const OAUTH_FILENAME = "oauth.json";
  * OAuth credentials storage directory.
  *
  * Precedence:
- * - `CLAWDBOT_OAUTH_DIR` (explicit override)
- * - `CLAWDBOT_STATE_DIR/credentials` (canonical server/default)
- * - `~/.clawdbot/credentials` (legacy default)
+ * - `FLOO_OAUTH_DIR` (explicit override)
+ * - `FLOO_STATE_DIR/credentials` (canonical server/default)
+ * - `~/.floo/credentials` (legacy default)
  */
 export function resolveOAuthDir(
   env: NodeJS.ProcessEnv = process.env,
   stateDir: string = resolveStateDir(env, os.homedir),
 ): string {
-  const override = env.CLAWDBOT_OAUTH_DIR?.trim();
+  const override = env.FLOO_OAUTH_DIR?.trim() || env.CLAWDBOT_OAUTH_DIR?.trim();
   if (override) return resolveUserPath(override);
   return path.join(stateDir, "credentials");
 }

@@ -154,9 +154,9 @@ export async function setupSkills(
         if (result.stderr) runtime.log(result.stderr.trim());
         else if (result.stdout) runtime.log(result.stdout.trim());
         runtime.log(
-          `Tip: run \`${formatCliCommand("clawdbot doctor")}\` to review skills + requirements.`,
+          `Tip: run \`${formatCliCommand("floo doctor")}\` to review skills + requirements.`,
         );
-        runtime.log("Docs: https://docs.clawd.bot/skills");
+        runtime.log("Docs: https://docs.floo.africa/skills");
       }
     }
   }

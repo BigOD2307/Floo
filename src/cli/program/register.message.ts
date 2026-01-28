@@ -46,7 +46,7 @@ ${formatHelpExamples([
   ],
 ])}
 
-${theme.muted("Docs:")} ${formatDocsLink("/cli/message", "docs.clawd.bot/cli/message")}`,
+${theme.muted("Docs:")} ${formatDocsLink("/cli/message", "docs.floo.africa/cli/message")}`,
     )
     .action(() => {
       message.help({ error: true });

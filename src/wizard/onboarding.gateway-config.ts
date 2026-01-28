@@ -145,7 +145,7 @@ export async function configureGatewayForOnboarding(
   let tailscaleResetOnExit = flow === "quickstart" ? quickstartGateway.tailscaleResetOnExit : false;
   if (tailscaleMode !== "off" && flow !== "quickstart") {
     await prompter.note(
-      ["Docs:", "https://docs.clawd.bot/gateway/tailscale", "https://docs.clawd.bot/web"].join(
+      ["Docs:", "https://docs.floo.africa/gateway/tailscale", "https://docs.floo.africa/web"].join(
         "\n",
       ),
       "Tailscale",

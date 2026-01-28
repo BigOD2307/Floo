@@ -80,55 +80,53 @@ describe("applyCliProfileEnv", () => {
 
 describe("formatCliCommand", () => {
   it("returns command unchanged when no profile is set", () => {
-    expect(formatCliCommand("clawdbot doctor --fix", {})).toBe("clawdbot doctor --fix");
+    expect(formatCliCommand("floo doctor --fix", {})).toBe("floo doctor --fix");
   });
 
   it("returns command unchanged when profile is default", () => {
-    expect(formatCliCommand("clawdbot doctor --fix", { CLAWDBOT_PROFILE: "default" })).toBe(
-      "clawdbot doctor --fix",
+    expect(formatCliCommand("floo doctor --fix", { CLAWDBOT_PROFILE: "default" })).toBe(
+      "floo doctor --fix",
     );
   });
 
   it("returns command unchanged when profile is Default (case-insensitive)", () => {
-    expect(formatCliCommand("clawdbot doctor --fix", { CLAWDBOT_PROFILE: "Default" })).toBe(
-      "clawdbot doctor --fix",
+    expect(formatCliCommand("floo doctor --fix", { CLAWDBOT_PROFILE: "Default" })).toBe(
+      "floo doctor --fix",
     );
   });
 
   it("returns command unchanged when profile is invalid", () => {
-    expect(formatCliCommand("clawdbot doctor --fix", { CLAWDBOT_PROFILE: "bad profile" })).toBe(
-      "clawdbot doctor --fix",
+    expect(formatCliCommand("floo doctor --fix", { CLAWDBOT_PROFILE: "bad profile" })).toBe(
+      "floo doctor --fix",
     );
   });
 
   it("returns command unchanged when --profile is already present", () => {
-    expect(
-      formatCliCommand("clawdbot --profile work doctor --fix", { CLAWDBOT_PROFILE: "work" }),
-    ).toBe("clawdbot --profile work doctor --fix");
+    expect(formatCliCommand("floo --profile work doctor --fix", { CLAWDBOT_PROFILE: "work" })).toBe(
+      "floo --profile work doctor --fix",
+    );
   });
 
   it("returns command unchanged when --dev is already present", () => {
-    expect(formatCliCommand("clawdbot --dev doctor", { CLAWDBOT_PROFILE: "dev" })).toBe(
-      "clawdbot --dev doctor",
+    expect(formatCliCommand("floo --dev doctor", { CLAWDBOT_PROFILE: "dev" })).toBe(
+      "floo --dev doctor",
     );
   });
 
   it("inserts --profile flag when profile is set", () => {
-    expect(formatCliCommand("clawdbot doctor --fix", { CLAWDBOT_PROFILE: "work" })).toBe(
-      "clawdbot --profile work doctor --fix",
+    expect(formatCliCommand("floo doctor --fix", { CLAWDBOT_PROFILE: "work" })).toBe(
+      "floo --profile work doctor --fix",
     );
   });
 
   it("trims whitespace from profile", () => {
-    expect(formatCliCommand("clawdbot doctor --fix", { CLAWDBOT_PROFILE: "  jbclawd  " })).toBe(
-      "clawdbot --profile jbclawd doctor --fix",
+    expect(formatCliCommand("floo doctor --fix", { CLAWDBOT_PROFILE: "  jbclawd  " })).toBe(
+      "floo --profile jbclawd doctor --fix",
     );
   });
 
   it("handles command with no args after clawdbot", () => {
-    expect(formatCliCommand("clawdbot", { CLAWDBOT_PROFILE: "test" })).toBe(
-      "clawdbot --profile test",
-    );
+    expect(formatCliCommand("floo", { CLAWDBOT_PROFILE: "test" })).toBe("floo --profile test");
   });
 
   it("handles pnpm wrapper", () => {

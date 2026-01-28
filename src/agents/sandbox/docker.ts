@@ -226,7 +226,7 @@ function formatSandboxRecreateHint(params: { scope: SandboxConfig["scope"]; sess
     const agentId = resolveSandboxAgentId(params.sessionKey) ?? "main";
     return formatCliCommand(`clawdbot sandbox recreate --agent ${agentId}`);
   }
-  return formatCliCommand("clawdbot sandbox recreate --all");
+  return formatCliCommand("floo sandbox recreate --all");
 }
 
 export async function ensureSandboxContainer(params: {

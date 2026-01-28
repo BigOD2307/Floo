@@ -80,7 +80,7 @@ const STEP_LABELS: Record<string, string> = {
   "deps install": "Installing dependencies",
   build: "Building",
   "ui:build": "Building UI",
-  "clawdbot doctor": "Running doctor checks",
+  "floo doctor": "Running doctor checks",
   "git rev-parse HEAD (after)": "Verifying update",
   "global update": "Updating via package manager",
   "global install": "Installing global package",
@@ -705,7 +705,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
       const entryPath = path.join(pkgRoot, "dist", "entry.js");
       if (await pathExists(entryPath)) {
         const doctorStep = await runUpdateStep({
-          name: "clawdbot doctor",
+          name: "floo doctor",
           argv: [resolveNodeRunner(), entryPath, "doctor", "--non-interactive"],
           timeoutMs: timeoutMs ?? 20 * 60_000,
           progress,
@@ -806,7 +806,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
     if (result.reason === "not-git-install") {
       defaultRuntime.log(
         theme.warn(
-          `Skipped: this Clawdbot install isn't a git checkout, and the package manager couldn't be detected. Update via your package manager, then run \`${formatCliCommand("clawdbot doctor")}\` and \`${formatCliCommand("clawdbot gateway restart")}\`.`,
+          `Skipped: this Clawdbot install isn't a git checkout, and the package manager couldn't be detected. Update via your package manager, then run \`${formatCliCommand("floo doctor")}\` and \`${formatCliCommand("floo gateway restart")}\`.`,
         ),
       );
       defaultRuntime.log(
@@ -926,7 +926,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
         defaultRuntime.log(theme.warn(`Daemon restart failed: ${String(err)}`));
         defaultRuntime.log(
           theme.muted(
-            `You may need to restart the service manually: ${formatCliCommand("clawdbot gateway restart")}`,
+            `You may need to restart the service manually: ${formatCliCommand("floo gateway restart")}`,
           ),
         );
       }
@@ -936,13 +936,13 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
     if (result.mode === "npm" || result.mode === "pnpm") {
       defaultRuntime.log(
         theme.muted(
-          `Tip: Run \`${formatCliCommand("clawdbot doctor")}\`, then \`${formatCliCommand("clawdbot gateway restart")}\` to apply updates to a running gateway.`,
+          `Tip: Run \`${formatCliCommand("floo doctor")}\`, then \`${formatCliCommand("floo gateway restart")}\` to apply updates to a running gateway.`,
         ),
       );
     } else {
       defaultRuntime.log(
         theme.muted(
-          `Tip: Run \`${formatCliCommand("clawdbot gateway restart")}\` to apply updates to a running gateway.`,
+          `Tip: Run \`${formatCliCommand("floo gateway restart")}\` to apply updates to a running gateway.`,
         ),
       );
     }
@@ -1092,7 +1092,7 @@ export async function updateWizardCommand(opts: UpdateWizardOptions = {}): Promi
 export function registerUpdateCli(program: Command) {
   const update = program
     .command("update")
-    .description("Update Clawdbot to the latest version")
+    .description("Mettre a jour Floo vers la derniere version")
     .option("--json", "Output result as JSON", false)
     .option("--no-restart", "Skip restarting the gateway service after a successful update")
     .option("--channel <stable|beta|dev>", "Persist update channel (git + npm)")
@@ -1101,15 +1101,15 @@ export function registerUpdateCli(program: Command) {
     .option("--yes", "Skip confirmation prompts (non-interactive)", false)
     .addHelpText("after", () => {
       const examples = [
-        ["clawdbot update", "Update a source checkout (git)"],
-        ["clawdbot update --channel beta", "Switch to beta channel (git + npm)"],
-        ["clawdbot update --channel dev", "Switch to dev channel (git + npm)"],
-        ["clawdbot update --tag beta", "One-off update to a dist-tag or version"],
-        ["clawdbot update --no-restart", "Update without restarting the service"],
-        ["clawdbot update --json", "Output result as JSON"],
-        ["clawdbot update --yes", "Non-interactive (accept downgrade prompts)"],
-        ["clawdbot update wizard", "Interactive update wizard"],
-        ["clawdbot --update", "Shorthand for clawdbot update"],
+        ["floo update", "Mise a jour (git)"],
+        ["floo update --channel beta", "Passer au canal beta"],
+        ["floo update --channel dev", "Passer au canal dev"],
+        ["floo update --tag beta", "Mise a jour one-off"],
+        ["floo update --no-restart", "Sans redemarrer le service"],
+        ["floo update --json", "Sortie JSON"],
+        ["floo update --yes", "Non-interactif"],
+        ["floo update wizard", "Assistant de mise a jour"],
+        ["floo --update", "Raccourci pour floo update"],
       ] as const;
       const fmtExamples = examples
         .map(([cmd, desc]) => `  ${theme.command(cmd)} ${theme.muted(`# ${desc}`)}`)
@@ -1121,7 +1121,7 @@ ${theme.heading("What this does:")}
 
 ${theme.heading("Switch channels:")}
   - Use --channel stable|beta|dev to persist the update channel in config
-  - Run clawdbot update status to see the active channel and source
+  - Run floo update status to see the active channel and source
   - Use --tag <dist-tag|version> for a one-off npm update without persisting
 
 ${theme.heading("Non-interactive:")}
@@ -1137,7 +1137,7 @@ ${theme.heading("Notes:")}
   - Downgrades require confirmation (can break configuration)
   - Skips update if the working directory has uncommitted changes
 
-${theme.muted("Docs:")} ${formatDocsLink("/cli/update", "docs.clawd.bot/cli/update")}`;
+${theme.muted("Docs:")} ${formatDocsLink("/cli/update", "docs.floo.africa/cli/update")}`;
     })
     .action(async (opts) => {
       try {
@@ -1161,7 +1161,7 @@ ${theme.muted("Docs:")} ${formatDocsLink("/cli/update", "docs.clawd.bot/cli/upda
     .option("--timeout <seconds>", "Timeout for each update step in seconds (default: 1200)")
     .addHelpText(
       "after",
-      `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/update", "docs.clawd.bot/cli/update")}\n`,
+      `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/update", "docs.floo.africa/cli/update")}\n`,
     )
     .action(async (opts) => {
       try {
@@ -1181,14 +1181,14 @@ ${theme.muted("Docs:")} ${formatDocsLink("/cli/update", "docs.clawd.bot/cli/upda
       "after",
       () =>
         `\n${theme.heading("Examples:")}\n${formatHelpExamples([
-          ["clawdbot update status", "Show channel + version status."],
-          ["clawdbot update status --json", "JSON output."],
-          ["clawdbot update status --timeout 10", "Custom timeout."],
+          ["floo update status", "Voir le statut."],
+          ["floo update status --json", "Sortie JSON."],
+          ["floo update status --timeout 10", "Timeout personnalise."],
         ])}\n\n${theme.heading("Notes:")}\n${theme.muted(
           "- Shows current update channel (stable/beta/dev) and source",
         )}\n${theme.muted("- Includes git tag/branch/SHA for source checkouts")}\n\n${theme.muted(
           "Docs:",
-        )} ${formatDocsLink("/cli/update", "docs.clawd.bot/cli/update")}`,
+        )} ${formatDocsLink("/cli/update", "docs.floo.africa/cli/update")}`,
     )
     .action(async (opts) => {
       try {

@@ -15,7 +15,7 @@ export async function setupInternalHooks(
       "Hooks let you automate actions when agent commands are issued.",
       "Example: Save session context to memory when you issue /new.",
       "",
-      "Learn more: https://docs.clawd.bot/hooks",
+      "Learn more: https://docs.floo.africa/hooks",
     ].join("\n"),
     "Hooks",
   );
@@ -74,9 +74,9 @@ export async function setupInternalHooks(
       `Enabled ${selected.length} hook${selected.length > 1 ? "s" : ""}: ${selected.join(", ")}`,
       "",
       "You can manage hooks later with:",
-      `  ${formatCliCommand("clawdbot hooks list")}`,
-      `  ${formatCliCommand("clawdbot hooks enable <name>")}`,
-      `  ${formatCliCommand("clawdbot hooks disable <name>")}`,
+      `  ${formatCliCommand("floo hooks list")}`,
+      `  ${formatCliCommand("floo hooks enable <name>")}`,
+      `  ${formatCliCommand("floo hooks disable <name>")}`,
     ].join("\n"),
     "Hooks Configured",
   );

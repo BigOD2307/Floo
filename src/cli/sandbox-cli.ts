@@ -15,30 +15,30 @@ type CommandOptions = Record<string, unknown>;
 
 const SANDBOX_EXAMPLES = {
   main: [
-    ["clawdbot sandbox list", "List all sandbox containers."],
-    ["clawdbot sandbox list --browser", "List only browser containers."],
-    ["clawdbot sandbox recreate --all", "Recreate all containers."],
-    ["clawdbot sandbox recreate --session main", "Recreate a specific session."],
-    ["clawdbot sandbox recreate --agent mybot", "Recreate agent containers."],
-    ["clawdbot sandbox explain", "Explain effective sandbox config."],
+    ["floo sandbox list", "List all sandbox containers."],
+    ["floo sandbox list --browser", "List only browser containers."],
+    ["floo sandbox recreate --all", "Recreate all containers."],
+    ["floo sandbox recreate --session main", "Recreate a specific session."],
+    ["floo sandbox recreate --agent mybot", "Recreate agent containers."],
+    ["floo sandbox explain", "Explain effective sandbox config."],
   ],
   list: [
-    ["clawdbot sandbox list", "List all sandbox containers."],
-    ["clawdbot sandbox list --browser", "List only browser containers."],
-    ["clawdbot sandbox list --json", "JSON output."],
+    ["floo sandbox list", "List all sandbox containers."],
+    ["floo sandbox list --browser", "List only browser containers."],
+    ["floo sandbox list --json", "JSON output."],
   ],
   recreate: [
-    ["clawdbot sandbox recreate --all", "Recreate all containers."],
-    ["clawdbot sandbox recreate --session main", "Recreate a specific session."],
-    ["clawdbot sandbox recreate --agent mybot", "Recreate a specific agent (includes sub-agents)."],
-    ["clawdbot sandbox recreate --browser --all", "Recreate only browser containers."],
-    ["clawdbot sandbox recreate --all --force", "Skip confirmation."],
+    ["floo sandbox recreate --all", "Recreate all containers."],
+    ["floo sandbox recreate --session main", "Recreate a specific session."],
+    ["floo sandbox recreate --agent mybot", "Recreate a specific agent (includes sub-agents)."],
+    ["floo sandbox recreate --browser --all", "Recreate only browser containers."],
+    ["floo sandbox recreate --all --force", "Skip confirmation."],
   ],
   explain: [
-    ["clawdbot sandbox explain", "Show effective sandbox config."],
-    ["clawdbot sandbox explain --session agent:main:main", "Explain a specific session."],
-    ["clawdbot sandbox explain --agent work", "Explain an agent sandbox."],
-    ["clawdbot sandbox explain --json", "JSON output."],
+    ["floo sandbox explain", "Show effective sandbox config."],
+    ["floo sandbox explain --session agent:main:main", "Explain a specific session."],
+    ["floo sandbox explain --agent work", "Explain an agent sandbox."],
+    ["floo sandbox explain --json", "JSON output."],
   ],
 } as const;
 
@@ -68,7 +68,7 @@ export function registerSandboxCli(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/sandbox", "docs.clawd.bot/cli/sandbox")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/sandbox", "docs.floo.africa/cli/sandbox")}\n`,
     )
     .action(() => {
       sandbox.help({ error: true });

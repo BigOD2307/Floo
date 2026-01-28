@@ -1,4 +1,4 @@
-const DEFAULT_TAGLINE = "All your chats, one Clawdbot.";
+const DEFAULT_TAGLINE = "Ton assistant IA personnel. Made in Africa.";
 
 const HOLIDAY_TAGLINES = {
   newYear:
@@ -23,6 +23,12 @@ const HOLIDAY_TAGLINES = {
 } as const;
 
 const TAGLINES: string[] = [
+  "Fais avancer les choses, Floo s'occupe du reste.",
+  "L'assistant IA qui parle ta langue.",
+  "WhatsApp + IA = Productivite maximale.",
+  "De Abidjan au monde, ton assistant personnel.",
+  "Moins de taches, plus de temps pour ce qui compte.",
+  "50 credits offerts pour tester. Go!",
   "Your terminal just grew claws—type something and let the bot pinch the busywork.",
   "Welcome to the command line: where dreams compile and confidence segfaults.",
   'I run on caffeine, JSON5, and the audacity of "it worked on my machine."',

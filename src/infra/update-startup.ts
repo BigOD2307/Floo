@@ -93,7 +93,7 @@ export async function runGatewayUpdateCheck(params: {
       state.lastNotifiedVersion !== resolved.version || state.lastNotifiedTag !== tag;
     if (shouldNotify) {
       params.log.info(
-        `update available (${tag}): v${resolved.version} (current v${VERSION}). Run: ${formatCliCommand("clawdbot update")}`,
+        `update available (${tag}): v${resolved.version} (current v${VERSION}). Run: ${formatCliCommand("floo update")}`,
       );
       nextState.lastNotifiedVersion = resolved.version;
       nextState.lastNotifiedTag = tag;

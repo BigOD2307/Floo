@@ -116,7 +116,7 @@ function buildDocsSection(params: { docsPath?: string; isMinimal: boolean; readT
   return [
     "## Documentation",
     `Clawdbot docs: ${docsPath}`,
-    "Mirror: https://docs.clawd.bot",
+    "Mirror: https://docs.floo.africa",
     "Source: https://github.com/clawdbot/clawdbot",
     "Community: https://discord.com/invite/clawd",
     "Find new skills: https://clawdhub.com",
@@ -324,11 +324,11 @@ export function buildAgentSystemPrompt(params: {
 
   // For "none" mode, return just the basic identity line
   if (promptMode === "none") {
-    return "You are a personal assistant running inside Clawdbot.";
+    return "You are Floo, a personal AI assistant for African professionals.";
   }
 
   const lines = [
-    "You are a personal assistant running inside Clawdbot.",
+    "You are Floo, a personal AI assistant for African professionals.",
     "",
     "## Tooling",
     "Tool availability (filtered by policy):",
@@ -360,13 +360,13 @@ export function buildAgentSystemPrompt(params: {
     "Keep narration brief and value-dense; avoid repeating obvious steps.",
     "Use plain human language for narration unless in a technical context.",
     "",
-    "## Clawdbot CLI Quick Reference",
-    "Clawdbot is controlled via subcommands. Do not invent commands.",
+    "## Floo CLI Quick Reference",
+    "Floo is controlled via subcommands. Do not invent commands.",
     "To manage the Gateway daemon service (start/stop/restart):",
-    "- clawdbot gateway status",
-    "- clawdbot gateway start",
-    "- clawdbot gateway stop",
-    "- clawdbot gateway restart",
+    "- floo gateway status",
+    "- floo gateway start",
+    "- floo gateway stop",
+    "- floo gateway restart",
     "If unsure, ask the user to run `clawdbot help` (or `clawdbot gateway --help`) and paste the output.",
     "",
     ...skillsSection,

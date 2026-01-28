@@ -53,11 +53,11 @@ async function requireRiskAcknowledgement(params: {
     [
       "Security warning — please read.",
       "",
-      "Clawdbot is a hobby project and still in beta. Expect sharp edges.",
+      "Floo est en beta. Des bugs peuvent survenir.",
       "This bot can read files and run actions if tools are enabled.",
       "A bad prompt can trick it into doing unsafe things.",
       "",
-      "If you’re not comfortable with basic security and access control, don’t run Clawdbot.",
+      "Si tu n'es pas a l'aise avec la securite, demande de l'aide avant de lancer Floo.",
       "Ask someone experienced to help before enabling tools or exposing it to the internet.",
       "",
       "Recommended baseline:",
@@ -67,10 +67,10 @@ async function requireRiskAcknowledgement(params: {
       "- Use the strongest available model for any bot with tools or untrusted inboxes.",
       "",
       "Run regularly:",
-      "clawdbot security audit --deep",
-      "clawdbot security audit --fix",
+      "floo security audit --deep",
+      "floo security audit --fix",
       "",
-      "Must read: https://docs.clawd.bot/gateway/security",
+      "Must read: https://docs.floo.africa/gateway/security",
     ].join("\n"),
     "Security",
   );
@@ -90,7 +90,7 @@ export async function runOnboardingWizard(
   prompter: WizardPrompter,
 ) {
   printWizardHeader(runtime);
-  await prompter.intro("Clawdbot onboarding");
+  await prompter.intro("Bienvenue sur Floo");
   await requireRiskAcknowledgement({ opts, prompter });
 
   const snapshot = await readConfigFileSnapshot();
@@ -103,19 +103,19 @@ export async function runOnboardingWizard(
         [
           ...snapshot.issues.map((iss) => `- ${iss.path}: ${iss.message}`),
           "",
-          "Docs: https://docs.clawd.bot/gateway/configuration",
+          "Docs: https://docs.floo.africa/gateway/configuration",
         ].join("\n"),
         "Config issues",
       );
     }
     await prompter.outro(
-      `Config invalid. Run \`${formatCliCommand("clawdbot doctor")}\` to repair it, then re-run onboarding.`,
+      `Config invalid. Run \`${formatCliCommand("floo doctor")}\` to repair it, then re-run onboarding.`,
     );
     runtime.exit(1);
     return;
   }
 
-  const quickstartHint = `Configure details later via ${formatCliCommand("clawdbot configure")}.`;
+  const quickstartHint = `Configure details later via ${formatCliCommand("floo configure")}.`;
   const manualHint = "Configure port, network, Tailscale, and auth options.";
   const explicitFlowRaw = opts.flow?.trim();
   const normalizedExplicitFlow = explicitFlowRaw === "manual" ? "advanced" : explicitFlowRaw;

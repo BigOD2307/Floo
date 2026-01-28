@@ -1,7 +1,7 @@
 {
-  "name": "clawdbot",
+  "name": "floo",
   "version": "2026.1.25",
-  "description": "WhatsApp gateway CLI (Baileys web) with Pi RPC agent",
+  "description": "Floo - Assistant IA personnel pour professionnels africains via WhatsApp",
   "type": "module",
   "main": "dist/index.js",
   "exports": {
@@ -10,6 +10,7 @@
     "./plugin-sdk/*": "./dist/plugin-sdk/*"
   },
   "bin": {
+    "floo": "dist/entry.js",
     "clawdbot": "dist/entry.js"
   },
   "files": [

@@ -25,7 +25,7 @@ export async function removeChannelConfigWizard(
       note(
         [
           "No channel config found in clawdbot.json.",
-          `Tip: \`${formatCliCommand("clawdbot channels status")}\` shows what is configured and enabled.`,
+          `Tip: \`${formatCliCommand("floo channels status")}\` shows what is configured and enabled.`,
         ].join("\n"),
         "Remove channel",
       );
