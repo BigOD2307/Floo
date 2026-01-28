@@ -1,0 +1,98 @@
+// Schéma de base de données Floo
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Utilisateur de l'application web
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String    // Hash bcrypt
+
+  // Code unique pour WhatsApp
+  code          String    @unique
+
+  // WhatsApp
+  phoneNumber   String?   @unique
+  whatsappLinked Boolean  @default(false)
+
+  // Crédits
+  credits       Int       @default(50) // Bonus de bienvenue
+
+  // Onboarding
+  onboarded     Boolean   @default(false)
+  onboardingData Json?    // Réponses aux 3 questions
+
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastActivity  DateTime?
+
+  // Relations
+  transactions  Transaction[]
+  sessions      Session[]
+
+  @@map("users")
+}
+
+// Transactions de crédits
+model Transaction {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type        TransactionType
+  amount      Int      // Nombre de crédits
+  balance     Int      // Solde après la transaction
+
+  // Détails
+  description String?
+  metadata    Json?    // Info additionnelle (task type, etc.)
+
+  // Payment (pour les achats)
+  paymentMethod String? // "wave" | "orange_money" | "bonus"
+  paymentId   String?  // ID de la transaction de paiement
+
+  createdAt   DateTime @default(now())
+
+  @@map("transactions")
+  @@index([userId])
+}
+
+enum TransactionType {
+  CREDIT  // Achat de crédits
+  DEBIT   // Utilisation de crédits
+  BONUS   // Bonus (bienvenue, promo, etc.)
+  REFUND  // Remboursement
+}
+
+// Sessions WhatsApp (historique des conversations)
+model Session {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // WhatsApp
+  phoneNumber String
+
+  // Conversation
+  messages    Json     // Array of messages
+  creditsUsed Int      @default(0)
+
+  // Status
+  active      Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("sessions")
+  @@index([userId])
+  @@index([phoneNumber])
+}
