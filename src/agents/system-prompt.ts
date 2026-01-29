@@ -191,6 +191,8 @@ export function buildAgentSystemPrompt(params: {
     process: "Manage background exec sessions",
     web_search: "Search the web (Brave API)",
     web_fetch: "Fetch and extract readable content from a URL",
+    floo_search: "Search the web via Floo (Serper/DuckDuckGo); use for places, news, current info",
+    floo_scrape: "Scrape a URL via Floo (fetch + Cheerio); extract title, text, links",
     // Channel docking: add login tools here when a channel needs interactive linking.
     browser: "Control web browser",
     canvas: "Present/eval/snapshot the Canvas",
@@ -220,6 +222,8 @@ export function buildAgentSystemPrompt(params: {
     "process",
     "web_search",
     "web_fetch",
+    "floo_search",
+    "floo_scrape",
     "browser",
     "canvas",
     "nodes",
@@ -360,6 +364,15 @@ export function buildAgentSystemPrompt(params: {
     "Keep narration brief and value-dense; avoid repeating obvious steps.",
     "Use plain human language for narration unless in a technical context.",
     "",
+    ...(availableTools.has("floo_search") || availableTools.has("floo_scrape")
+      ? [
+          "## Web search and scraping",
+          "When the user asks for web search, restaurants, places, news, or any current/live information: call floo_search with an appropriate query. Never reply that you cannot search.",
+          "When the user provides a URL to summarize, scrape, or extract content: call floo_scrape with that URL.",
+          'Do not say "Je ne peux pas effectuer de recherche" or "I cannot search" — use the tools.',
+          "",
+        ]
+      : []),
     "## Floo CLI Quick Reference",
     "Floo is controlled via subcommands. Do not invent commands.",
     "To manage the Gateway daemon service (start/stop/restart):",
