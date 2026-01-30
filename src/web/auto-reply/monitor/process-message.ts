@@ -33,6 +33,7 @@ import { deliverWebReply } from "../deliver-reply.js";
 import { whatsappInboundLog, whatsappOutboundLog } from "../loggers.js";
 import type { WebInboundMsg } from "../types.js";
 import { elide } from "../util.js";
+import { flooVerifyCode } from "../../floo-verify-code.js";
 import { maybeSendAckReaction } from "./ack-reaction.js";
 import { formatGroupMembers } from "./group-members.js";
 import { trackBackgroundTask, updateLastRouteInBackground } from "./last-route.js";
@@ -194,6 +195,29 @@ export async function processMessage(params: {
     info: params.replyLogger.info.bind(params.replyLogger),
     warn: params.replyLogger.warn.bind(params.replyLogger),
   });
+
+  // Floo: interception des messages « code » pour liaison WhatsApp (DM uniquement)
+  if (params.msg.chatType !== "group") {
+    const rawBody = (params.msg.body ?? "").trim().replace(/\s+/g, " ").trim();
+    const firstToken = rawBody.split(/\s+/)[0] ?? rawBody;
+    const codeMatch = /^FL-\d{4}$/i.exec(firstToken) ?? /^[A-Za-z0-9]{4,8}$/i.exec(firstToken);
+    if (codeMatch) {
+      const code = codeMatch[0];
+      const senderE164 =
+        params.msg.senderE164 ??
+        (params.msg.from?.includes("@") ? jidToE164(params.msg.from) : (params.msg.from ?? ""));
+      const phone = senderE164 ? normalizeE164(senderE164) : senderE164;
+      if (phone) {
+        const result = await flooVerifyCode(code, phone);
+        if (result.success) {
+          const name = result.user.name?.trim() || "là";
+          await params.msg.reply(`Compte lié avec succès ! Bonjour ${name} 👋`);
+          whatsappInboundLog.info(`Floo code verified and linked: ${phone} -> code ${code}`);
+          return true;
+        }
+      }
+    }
+  }
 
   const correlationId = params.msg.id ?? newConnectionId();
   params.replyLogger.info(

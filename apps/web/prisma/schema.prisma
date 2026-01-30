@@ -1,11 +1,12 @@
-// Schéma de base de données Floo
+// Schéma de base de données Floo (PostgreSQL / Supabase)
+// Tables: users, transactions, sessions — sans RLS
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -28,7 +29,7 @@ model User {
 
   // Onboarding
   onboarded     Boolean   @default(false)
-  onboardingData String?    // Réponses aux 3 questions (JSON stringifié)
+  onboardingData Json?    // Réponses aux 3 questions (JSON)
 
   // Timestamps
   createdAt     DateTime  @default(now())
@@ -42,19 +43,26 @@ model User {
   @@map("users")
 }
 
+enum TransactionType {
+  CREDIT
+  DEBIT
+  BONUS
+  REFUND
+}
+
 // Transactions de crédits
 model Transaction {
   id          String   @id @default(cuid())
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  type        String   // "CREDIT" | "DEBIT" | "BONUS" | "REFUND"
+  type        TransactionType
   amount      Int      // Nombre de crédits
   balance     Int      // Solde après la transaction
 
   // Détails
   description String?
-  metadata    String?    // Info additionnelle (JSON stringifié)
+  metadata    Json?    // Info additionnelle (JSON)
 
   // Payment (pour les achats)
   paymentMethod String? // "wave" | "orange_money" | "bonus"
@@ -76,7 +84,7 @@ model Session {
   phoneNumber String
 
   // Conversation
-  messages    String   // Array of messages (JSON stringifié)
+  messages    Json     // Array of messages (JSON)
   creditsUsed Int      @default(0)
 
   // Status

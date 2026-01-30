@@ -61,6 +61,10 @@ apps/ios/*.dSYM.zip
 # provisioning profiles (local)
 apps/ios/*.mobileprovision
 .env
+.env.vps
+
+# External skills clones (antfu, moltbot)
+.skills-external/
 
 # Local untracked files
 .local/
@@ -71,3 +75,9 @@ USER.md
 
 # local tooling
 .serena/
+
+# Floo web local DB and env backups
+apps/web/prisma/*.db
+apps/web/prisma/*.db-shm
+apps/web/prisma/*.db-wal
+apps/web/.env.local.backup

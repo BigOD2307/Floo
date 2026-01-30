@@ -14,16 +14,31 @@ interface UserData {
   phoneNumber: string | null
 }
 
+interface DashboardStats {
+  credits: number
+  conversations: number
+  timeSaved: {
+    hours: number
+    minutes: number
+    formatted: string
+  }
+  isNewUser: boolean
+  whatsappLinked: boolean
+}
+
 type PageId = "dashboard" | "credits" | "whatsapp" | "history" | "analytics" | "settings"
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [userData, setUserData] = useState<UserData | null>(null)
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState<PageId>("dashboard")
   const [generatedCode, setGeneratedCode] = useState<string>("")
   const [codeGenerated, setCodeGenerated] = useState(false)
+  const [codeLoading, setCodeLoading] = useState(false)
   const [copyFeedback, setCopyFeedback] = useState(false)
   const [showTour, setShowTour] = useState(false)
   const tiltCardsRef = useRef<Map<HTMLElement, () => void>>(new Map())
@@ -51,13 +66,40 @@ export default function DashboardPage() {
   }, [currentPage])
 
   const fetchUserData = async () => {
+    setFetchError(null)
     try {
-      const response = await fetch("/api/user")
-      if (!response.ok) throw new Error("Failed to fetch user data")
-      const data = await response.json()
-      setUserData(data)
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 15000)
+      const [userResponse, statsResponse] = await Promise.all([
+        fetch("/api/user", { signal: controller.signal }),
+        fetch("/api/dashboard/stats", { signal: controller.signal }),
+      ])
+      clearTimeout(timeout)
+
+      if (!userResponse.ok) {
+        if (userResponse.status === 401) {
+          setFetchError("Session expirée. Veuillez vous reconnecter.")
+          router.push("/auth/signin")
+          return
+        }
+        throw new Error(`Erreur ${userResponse.status}`)
+      }
+      const userData = await userResponse.json()
+      setUserData(userData)
+
+      if (statsResponse.ok) {
+        const stats = await statsResponse.json()
+        setDashboardStats(stats)
+      }
     } catch (error) {
       console.error(error)
+      const message =
+        error instanceof Error
+          ? error.name === "AbortError"
+            ? "Délai dépassé. Vérifiez votre connexion."
+            : error.message
+          : "Impossible de charger le dashboard."
+      setFetchError(message)
     } finally {
       setLoading(false)
     }
@@ -106,15 +148,47 @@ export default function DashboardPage() {
     })
   }
 
-  const generateCode = () => {
-    // Use the user's actual code from the database
-    const code = userData?.code || `#FL-${Math.floor(1000 + Math.random() * 9000)}`
-    setGeneratedCode(code)
-    setCodeGenerated(true)
-    // Re-initialize tilt after code generation
-    setTimeout(() => {
-      initTilt()
-    }, 100)
+  const generateCode = async () => {
+    try {
+      // Utiliser le code existant de l'utilisateur
+      if (userData?.code) {
+        setGeneratedCode(userData.code)
+        setCodeGenerated(true)
+        setTimeout(() => {
+          initTilt()
+        }, 100)
+        return
+      }
+
+      // Régénérer un nouveau code si nécessaire
+      setCodeLoading(true)
+      const response = await fetch("/api/whatsapp/regenerate-code", {
+        method: "POST",
+      })
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}))
+        throw new Error(err.error || "Erreur lors de la génération du code")
+      }
+
+      const data = await response.json()
+      setGeneratedCode(data.code)
+      setCodeGenerated(true)
+
+      // Mettre à jour les données utilisateur
+      if (userData) {
+        setUserData({ ...userData, code: data.code })
+      }
+
+      setTimeout(() => {
+        initTilt()
+      }, 100)
+    } catch (error) {
+      console.error("Erreur génération code:", error)
+      alert(error instanceof Error ? error.message : "Erreur lors de la génération du code. Veuillez réessayer.")
+    } finally {
+      setCodeLoading(false)
+    }
   }
 
   const copyCode = () => {
@@ -144,8 +218,31 @@ export default function DashboardPage() {
     )
   }
 
-  if (!userData) {
-    return null
+  if (fetchError || !userData) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#030303] gap-6 px-4">
+        <p className="text-white/90 text-center max-w-md">
+          {fetchError || "Impossible de charger vos données."}
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={() => {
+              setLoading(true)
+              fetchUserData()
+            }}
+            className="px-4 py-2 rounded-lg bg-[#00ffc4] text-black font-medium hover:opacity-90"
+          >
+            Réessayer
+          </button>
+          <button
+            onClick={() => signOut({ callbackUrl: "/auth/signin" })}
+            className="px-4 py-2 rounded-lg border border-white/20 text-white hover:bg-white/5"
+          >
+            Se déconnecter
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -361,7 +458,9 @@ export default function DashboardPage() {
                         LIVE
                       </span>
                     </div>
-                    <div className="text-4xl font-bold text-white mb-2 tracking-tighter">{userData.credits}</div>
+                    <div className="text-4xl font-bold text-white mb-2 tracking-tighter">
+                      {dashboardStats?.credits ?? userData.credits}
+                    </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-neutral-400">Crédits disponibles</span>
                     </div>
@@ -376,12 +475,16 @@ export default function DashboardPage() {
                       <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.1)]">
                         <iconify-icon icon="solar:chat-line-bold-duotone" className="text-2xl"></iconify-icon>
                       </div>
-                      <span className="text-[10px] font-mono text-purple-400 bg-purple-500/5 px-2 py-1 rounded border border-purple-500/10">
-                        +12%
-                      </span>
+                      {!dashboardStats?.isNewUser && dashboardStats && dashboardStats.conversations > 0 && (
+                        <span className="text-[10px] font-mono text-purple-400 bg-purple-500/5 px-2 py-1 rounded border border-purple-500/10">
+                          +12%
+                        </span>
+                      )}
                     </div>
-                    <div className="text-4xl font-bold text-white mb-2 tracking-tighter">42</div>
-                  <div className="flex items-center gap-2">
+                    <div className="text-4xl font-bold text-white mb-2 tracking-tighter">
+                      {showTour ? "42" : dashboardStats?.conversations ?? 0}
+                    </div>
+                    <div className="flex items-center gap-2">
                       <span className="text-xs text-neutral-400">Conversations auto</span>
                     </div>
                   </div>
@@ -399,8 +502,10 @@ export default function DashboardPage() {
                         ESTIMATION
                       </span>
                     </div>
-                    <div className="text-4xl font-bold text-white mb-2 tracking-tighter">3h 20m</div>
-                  <div className="flex items-center gap-2">
+                    <div className="text-4xl font-bold text-white mb-2 tracking-tighter">
+                      {showTour ? "3h 20m" : dashboardStats?.timeSaved?.formatted ?? "0m"}
+                    </div>
+                    <div className="flex items-center gap-2">
                       <span className="text-xs text-neutral-400">Économisées ce mois</span>
                     </div>
                   </div>
@@ -558,10 +663,11 @@ export default function DashboardPage() {
                             </div>
                             <button
                               onClick={generateCode}
+                              disabled={codeLoading}
                               id="btn-generate"
-                              className="w-full py-4 rounded-xl bg-white text-black font-bold text-lg hover:bg-[#00ffc4] hover:shadow-[0_0_30px_rgba(0,255,196,0.4)] transition-all transform hover:-translate-y-1"
+                              className="w-full py-4 rounded-xl bg-white text-black font-bold text-lg hover:bg-[#00ffc4] hover:shadow-[0_0_30px_rgba(0,255,196,0.4)] transition-all transform hover:-translate-y-1 disabled:opacity-70 disabled:pointer-events-none"
                             >
-                              Générer mon code
+                              {codeLoading ? "Génération..." : "Générer mon code"}
                             </button>
                           </div>
                         )}

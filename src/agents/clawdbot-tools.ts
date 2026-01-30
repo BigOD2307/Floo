@@ -16,6 +16,7 @@ import { createSessionsHistoryTool } from "./tools/sessions-history-tool.js";
 import { createSessionsListTool } from "./tools/sessions-list-tool.js";
 import { createSessionsSendTool } from "./tools/sessions-send-tool.js";
 import { createSessionsSpawnTool } from "./tools/sessions-spawn-tool.js";
+import { createFlooScrapeTool, createFlooSearchTool } from "./tools/floo-api-tools.js";
 import { createWebFetchTool, createWebSearchTool } from "./tools/web-tools.js";
 import { createTtsTool } from "./tools/tts-tool.js";
 
@@ -70,6 +71,8 @@ export function createClawdbotTools(options?: {
     config: options?.config,
     sandboxed: options?.sandboxed,
   });
+  const flooSearchTool = createFlooSearchTool();
+  const flooScrapeTool = createFlooScrapeTool();
   const tools: AnyAgentTool[] = [
     createBrowserTool({
       sandboxBridgeUrl: options?.sandboxBrowserBridgeUrl,
@@ -136,6 +139,8 @@ export function createClawdbotTools(options?: {
     }),
     ...(webSearchTool ? [webSearchTool] : []),
     ...(webFetchTool ? [webFetchTool] : []),
+    ...(flooSearchTool ? [flooSearchTool] : []),
+    ...(flooScrapeTool ? [flooScrapeTool] : []),
     ...(imageTool ? [imageTool] : []),
   ];
 

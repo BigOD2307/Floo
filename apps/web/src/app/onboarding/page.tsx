@@ -65,9 +65,7 @@ export default function OnboardingPage() {
     if (step === 1) {
       const role = element.querySelector("h3")?.textContent || ""
       setOnboardingData((prev) => ({ ...prev, role }))
-      if (step !== 2 && step !== 4) {
-        setTimeout(() => nextStep(), 400)
-      }
+      setTimeout(() => nextStep(), 400)
     } else if (step === 2) {
       if (!element.id.includes("other")) {
         const painPoint = element.querySelector("span")?.textContent || ""

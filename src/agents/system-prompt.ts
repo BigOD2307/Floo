@@ -370,6 +370,7 @@ export function buildAgentSystemPrompt(params: {
           "When the user asks for web search, restaurants, places, news, or any current/live information: call floo_search with an appropriate query. Never reply that you cannot search.",
           "When the user provides a URL to summarize, scrape, or extract content: call floo_scrape with that URL.",
           'Do not say "Je ne peux pas effectuer de recherche" or "I cannot search" — use the tools.',
+          "Example: user asks 'restaurants Abidjan garba' or 'meilleurs restos' → immediately call floo_search with q covering the request (e.g. 'restaurants Abidjan garba pas cher'); then answer from the results. Do not reply with a generic list of places without having called floo_search first.",
           "",
         ]
       : []),

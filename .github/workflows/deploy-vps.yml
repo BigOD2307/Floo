@@ -1,0 +1,120 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  VPS_HOST: 38.180.244.104
+  VPS_USER: root
+
+jobs:
+  deploy-web:
+    name: Deploy Floo Web (Next.js)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Build Next.js app
+        working-directory: apps/web
+        run: |
+          npm ci
+          npx prisma generate
+          npm run build
+
+      - name: Deploy to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ env.VPS_HOST }}
+          username: ${{ env.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          source: "apps/web/*"
+          target: "/home/floo/floo-web"
+          strip_components: 2
+          exclude: |
+            node_modules
+            .next
+            .env
+            .env.local
+            prisma/*.db*
+
+      - name: Setup and restart on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ env.VPS_HOST }}
+          username: ${{ env.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+            cd /home/floo/floo-web
+            npm ci --omit=dev
+            npx prisma generate
+            npx prisma db push --accept-data-loss 2>/dev/null || true
+            chown -R floo:floo /home/floo/floo-web
+            systemctl restart floo-web
+
+  deploy-gateway:
+    name: Deploy Floo Gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Build gateway
+        run: |
+          pnpm install
+          pnpm run build:gateway
+
+      - name: Deploy to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ env.VPS_HOST }}
+          username: ${{ env.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          source: |
+            dist/
+            package.json
+            pnpm-lock.yaml
+            src/
+            scripts/
+            extensions/
+            skills/
+            apps/
+          target: "/home/floo/floo"
+          exclude: |
+            node_modules
+            .git
+            apps/web
+            vendor
+            *.db
+            *.db-*
+
+      - name: Install deps and restart gateway
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ env.VPS_HOST }}
+          username: ${{ env.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+            export CI=true
+            chown -R floo:floo /home/floo/floo
+            sudo -u floo bash -c "cd /home/floo/floo && CI=true pnpm install --ignore-scripts"
+            systemctl restart floo
