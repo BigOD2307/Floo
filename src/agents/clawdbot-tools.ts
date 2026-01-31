@@ -17,6 +17,9 @@ import { createSessionsListTool } from "./tools/sessions-list-tool.js";
 import { createSessionsSendTool } from "./tools/sessions-send-tool.js";
 import { createSessionsSpawnTool } from "./tools/sessions-spawn-tool.js";
 import {
+  createFlooCalendarEventsTool,
+  createFlooGmailListTool,
+  createFlooGmailSendTool,
   createFlooImageGenerateTool,
   createFlooReservationTool,
   createFlooScrapeTool,
@@ -57,6 +60,8 @@ export function createClawdbotTools(options?: {
   hasRepliedRef?: { value: boolean };
   /** If true, the model has native vision capability */
   modelHasVision?: boolean;
+  /** Sender E.164 (WhatsApp) pour outils Floo Gmail/Calendar */
+  senderE164?: string | null;
   /** Explicit agent ID override for cron/hook sessions. */
   requesterAgentIdOverride?: string;
 }): AnyAgentTool[] {
@@ -80,6 +85,9 @@ export function createClawdbotTools(options?: {
   const flooScrapeTool = createFlooScrapeTool();
   const flooImageGenerateTool = createFlooImageGenerateTool();
   const flooReservationTool = createFlooReservationTool();
+  const flooGmailSendTool = createFlooGmailSendTool(options?.senderE164);
+  const flooGmailListTool = createFlooGmailListTool(options?.senderE164);
+  const flooCalendarEventsTool = createFlooCalendarEventsTool(options?.senderE164);
   const tools: AnyAgentTool[] = [
     createBrowserTool({
       sandboxBridgeUrl: options?.sandboxBrowserBridgeUrl,
@@ -150,6 +158,9 @@ export function createClawdbotTools(options?: {
     ...(flooScrapeTool ? [flooScrapeTool] : []),
     ...(flooImageGenerateTool ? [flooImageGenerateTool] : []),
     ...(flooReservationTool ? [flooReservationTool] : []),
+    ...(flooGmailSendTool ? [flooGmailSendTool] : []),
+    ...(flooGmailListTool ? [flooGmailListTool] : []),
+    ...(flooCalendarEventsTool ? [flooCalendarEventsTool] : []),
     ...(imageTool ? [imageTool] : []),
   ];
 

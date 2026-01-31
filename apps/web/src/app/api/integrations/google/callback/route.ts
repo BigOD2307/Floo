@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
     create: {
       userId,
       provider: "google",
-      scope: "gmail,calendar",
+      scope: "gmail,calendar,sheets,docs,drive",
       accessToken: tokens.access_token,
       refreshToken: tokens.refresh_token ?? null,
       expiresAt,

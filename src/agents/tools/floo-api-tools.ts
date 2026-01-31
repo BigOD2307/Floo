@@ -39,6 +39,26 @@ const FlooReservationSchema = Type.Object({
   ),
 });
 
+const FlooGmailSendSchema = Type.Object({
+  to: Type.String({ description: "Adresse email du destinataire." }),
+  subject: Type.String({ description: "Sujet de l'email." }),
+  body: Type.String({ description: "Corps du message." }),
+});
+
+const FlooGmailListSchema = Type.Object({});
+
+const FlooCalendarEventsSchema = Type.Object({
+  action: Type.Optional(
+    Type.Union([Type.Literal("list"), Type.Literal("create")], {
+      description: "list: événements à venir. create: créer un événement.",
+    }),
+  ),
+  summary: Type.Optional(Type.String({ description: "Titre (pour create)." })),
+  start: Type.Optional(Type.String({ description: "Date/heure début ISO (pour create)." })),
+  end: Type.Optional(Type.String({ description: "Date/heure fin ISO (pour create)." })),
+  description: Type.Optional(Type.String({ description: "Description (pour create)." })),
+});
+
 function getBaseUrl(): string | undefined {
   const u = process.env[BASE_URL_ENV]?.trim();
   if (!u) return undefined;
@@ -236,6 +256,91 @@ export function createFlooReservationTool(): AnyAgentTool | null {
           error: error || "floo_reservation failed",
           results: [],
         });
+      return jsonResult(data);
+    },
+  };
+}
+
+export function createFlooGmailSendTool(
+  senderE164: string | null | undefined,
+): AnyAgentTool | null {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  const phone = senderE164?.trim();
+  if (!base || !key || !phone) return null;
+
+  return {
+    label: "Floo Gmail Send",
+    name: "floo_gmail_send",
+    description:
+      "Envoie un email via Gmail (utilisateur doit avoir connecté Google sur le dashboard). Paramètres: to, subject, body.",
+    parameters: FlooGmailSendSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const to = readStringParam(params, "to", { required: true });
+      const subject = readStringParam(params, "subject", { required: true });
+      const body = readStringParam(params, "body", { required: true });
+      const { ok, data, error } = await flooFetch(
+        "/api/tools/gmail/send",
+        { phoneNumber: phone, to, subject, body },
+        key,
+      );
+      if (!ok) return jsonResult({ ok: false, error: error || "floo_gmail_send failed" });
+      return jsonResult(data);
+    },
+  };
+}
+
+export function createFlooGmailListTool(
+  senderE164: string | null | undefined,
+): AnyAgentTool | null {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  const phone = senderE164?.trim();
+  if (!base || !key || !phone) return null;
+
+  return {
+    label: "Floo Gmail List",
+    name: "floo_gmail_list",
+    description: "Liste les derniers emails Gmail (utilisateur doit avoir connecté Google).",
+    parameters: FlooGmailListSchema,
+    execute: async () => {
+      const { ok, data, error } = await flooFetch(
+        "/api/tools/gmail/list",
+        { phoneNumber: phone },
+        key,
+      );
+      if (!ok)
+        return jsonResult({ ok: false, error: error || "floo_gmail_list failed", emails: [] });
+      return jsonResult(data);
+    },
+  };
+}
+
+export function createFlooCalendarEventsTool(
+  senderE164: string | null | undefined,
+): AnyAgentTool | null {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  const phone = senderE164?.trim();
+  if (!base || !key || !phone) return null;
+
+  return {
+    label: "Floo Calendar",
+    name: "floo_calendar_events",
+    description:
+      "Liste les événements à venir ou crée un événement Google Calendar. Action: list (défaut) ou create. Pour create: summary, start, end requis.",
+    parameters: FlooCalendarEventsSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const body: Record<string, unknown> = { phoneNumber: phone };
+      if (params.action) body.action = params.action;
+      if (params.summary) body.summary = params.summary;
+      if (params.start) body.start = params.start;
+      if (params.end) body.end = params.end;
+      if (params.description) body.description = params.description;
+      const { ok, data, error } = await flooFetch("/api/tools/calendar/events", body, key);
+      if (!ok) return jsonResult({ ok: false, error: error || "floo_calendar_events failed" });
       return jsonResult(data);
     },
   };
