@@ -223,14 +223,15 @@ export async function processMessage(params: {
     }
 
     // Floo: numéro public — exiger un compte lié avant d'accéder à l'IA
-    const dmPhone =
-      params.msg.senderE164 != null
-        ? normalizeE164(params.msg.senderE164)
-        : params.msg.from?.includes("@")
-          ? normalizeE164(jidToE164(params.msg.from))
-          : params.msg.from
-            ? normalizeE164(params.msg.from)
-            : "";
+    let dmPhone = "";
+    if (params.msg.senderE164 != null) {
+      dmPhone = normalizeE164(params.msg.senderE164);
+    } else if (params.msg.from?.includes("@")) {
+      const e164 = jidToE164(params.msg.from);
+      if (e164) dmPhone = normalizeE164(e164);
+    } else if (params.msg.from) {
+      dmPhone = normalizeE164(params.msg.from);
+    }
     if (dmPhone) {
       const linked = await flooCheckUserLinked(dmPhone);
       if (!linked) {
