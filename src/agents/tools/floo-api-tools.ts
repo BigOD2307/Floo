@@ -86,6 +86,31 @@ function logFlooToolsSkippedOnce(reason: string) {
   );
 }
 
+/**
+ * Exécute une recherche web via l'API Floo (sans passer par le tool).
+ * Utilisé pour pré-injecter les résultats quand le modèle ne call pas floo_search.
+ */
+export async function runFlooSearch(query: string): Promise<{
+  ok: boolean;
+  results?: Array<{ title?: string; link?: string; snippet?: string }>;
+  provider?: string;
+  error?: string;
+}> {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  if (!base || !key) {
+    return { ok: false, error: "FLOO_API_BASE_URL or FLOO_GATEWAY_API_KEY not set" };
+  }
+  const { ok, data, error } = await flooFetch("/api/tools/search", { q: query }, key);
+  if (!ok) return { ok: false, error };
+  const d = data as {
+    results?: Array<{ title?: string; link?: string; snippet?: string }>;
+    provider?: string;
+  };
+  const results = (d.results ?? []) as Array<{ title?: string; link?: string; snippet?: string }>;
+  return { ok: true, results, provider: d.provider };
+}
+
 export function createFlooSearchTool(): AnyAgentTool | null {
   const base = getBaseUrl();
   const key = getApiKey();

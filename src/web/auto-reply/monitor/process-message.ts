@@ -33,6 +33,7 @@ import { deliverWebReply } from "../deliver-reply.js";
 import { whatsappInboundLog, whatsappOutboundLog } from "../loggers.js";
 import type { WebInboundMsg } from "../types.js";
 import { elide } from "../util.js";
+import { flooCheckCredits, flooUseCredit } from "../../floo-credits.js";
 import { flooCheckUserLinked, flooVerifyCode } from "../../floo-verify-code.js";
 import { maybeSendAckReaction } from "./ack-reaction.js";
 import { formatGroupMembers } from "./group-members.js";
@@ -296,6 +297,7 @@ export async function processMessage(params: {
   });
   let didLogHeartbeatStrip = false;
   let didSendReply = false;
+  let didDeductCredit = false;
   const commandAuthorized = shouldComputeCommandAuthorized(params.msg.body, params.cfg)
     ? await resolveWhatsAppCommandAuthorized({ cfg: params.cfg, msg: params.msg })
     : undefined;
@@ -379,6 +381,17 @@ export async function processMessage(params: {
   });
   trackBackgroundTask(params.backgroundTasks, metaTask);
 
+  // Floo: vérifier les crédits avant de traiter (DM uniquement)
+  if (params.msg.chatType !== "group" && dmRouteTarget) {
+    const credits = await flooCheckCredits(dmRouteTarget);
+    if (credits >= 0 && credits < 1) {
+      await params.msg.reply(
+        "Tu n'as plus de crédits pour envoyer des messages à l'IA. Recharge sur https://floo-ecru.vercel.app/dashboard pour continuer.",
+      );
+      return false;
+    }
+  }
+
   const { queuedFinal } = await dispatchReplyWithBufferedBlockDispatcher({
     ctx: ctxPayload,
     cfg: params.cfg,
@@ -421,6 +434,17 @@ export async function processMessage(params: {
             params.msg.chatType === "group" ? conversationId : (params.msg.from ?? "unknown");
           const hasMedia = Boolean(payload.mediaUrl || payload.mediaUrls?.length);
           whatsappOutboundLog.info(`Auto-replied to ${fromDisplay}${hasMedia ? " (media)" : ""}`);
+          if (
+            params.msg.chatType !== "group" &&
+            dmRouteTarget &&
+            !didDeductCredit &&
+            (payload.text || payload.mediaUrl || payload.mediaUrls?.length)
+          ) {
+            didDeductCredit = true;
+            flooUseCredit(dmRouteTarget).catch((err) => {
+              params.replyLogger.warn({ err }, "floo credits deduct failed");
+            });
+          }
           if (shouldLogVerbose()) {
             const preview = payload.text != null ? elide(payload.text, 400) : "<media>";
             whatsappOutboundLog.debug(`Reply body: ${preview}${hasMedia ? " (media)" : ""}`);

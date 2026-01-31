@@ -32,6 +32,7 @@ import {
 } from "../thinking.js";
 import { SILENT_REPLY_TOKEN } from "../tokens.js";
 import type { GetReplyOptions, ReplyPayload } from "../types.js";
+import { runFlooSearch } from "../../agents/tools/floo-api-tools.js";
 import { runReplyAgent } from "./agent-runner.js";
 import { applySessionHints } from "./body.js";
 import { routeReply } from "./route-reply.js";
@@ -46,6 +47,36 @@ import { resolveTypingMode } from "./typing-mode.js";
 
 type AgentDefaults = NonNullable<ClawdbotConfig["agents"]>["defaults"];
 type ExecOverrides = Pick<ExecToolDefaults, "host" | "security" | "ask" | "node">;
+
+/** Extrait et optimise une requête de recherche du message utilisateur. */
+function extractSearchQuery(raw: string): string {
+  const fillers = [
+    /^donne\s*[- ]?moi\s+/i,
+    /^dit\s*[- ]?moi\s+/i,
+    /^dis\s*[- ]?moi\s+/i,
+    /^c['']est\s+qui\s+/i,
+    /^qui\s+est\s+/i,
+    /^tu\s+sais\s+(qui\s+est\s+)?/i,
+    /^peux\s+tu\s+(me\s+)?(chercher|trouver)\s+/i,
+    /^cherche\s+(moi\s+)?/i,
+    /^trouve\s+(moi\s+)?/i,
+    /^recherche\s+(moi\s+)?/i,
+  ];
+  let q = raw.trim();
+  for (const re of fillers) {
+    q = q.replace(re, "").trim();
+  }
+  q = q.replace(/\s+/g, " ").trim();
+  if (!q) return raw.trim().slice(0, 150);
+  const lower = q.toLowerCase();
+  if (
+    /\b(restaurant|restaurants|manger|garba|cuisine|plats?|adresse|lieu)\b/.test(lower) &&
+    /\b(abidjan|yamoussoukro|côte d'ivoire|ivory coast)\b/i.test(q)
+  ) {
+    return `${q} avis recommandations`.slice(0, 150);
+  }
+  return q.slice(0, 150);
+}
 
 const BARE_SESSION_RESET_PROMPT =
   "A new session was started via /new or /reset. Say hi briefly (1-2 sentences) and ask what the user wants to do next. If the runtime model differs from default_model in the system prompt, mention the default model in the greeting. Do not mention internal steps, files, tools, or reasoning.";
@@ -179,7 +210,67 @@ export async function runPreparedReply(
       })
     : "";
   const groupSystemPrompt = sessionCtx.GroupSystemPrompt?.trim() ?? "";
-  const extraSystemPrompt = [groupIntro, groupSystemPrompt].filter(Boolean).join("\n\n");
+  const bodyForSearchCheck = (sessionCtx.BodyStripped ?? sessionCtx.Body ?? "").toLowerCase();
+  const isWhatsApp =
+    /whatsapp/i.test(sessionKey) ||
+    /whatsapp/i.test(String(ctx.Provider ?? "")) ||
+    /whatsapp/i.test(String(ctx.Surface ?? ""));
+  const searchKeywords = [
+    "meilleurs",
+    "restaurant",
+    "restaurants",
+    "garba",
+    "recherche",
+    "cherche",
+    "trouve",
+    "dit moi",
+    "c'est qui",
+    "qui est",
+    "où manger",
+    "adresse",
+    "lieu",
+    "bon plan",
+    "recommand",
+  ];
+  const looksLikeSearch =
+    isWhatsApp && searchKeywords.some((kw) => bodyForSearchCheck.includes(kw));
+  let searchResultsBlock = "";
+  if (looksLikeSearch) {
+    const raw = (sessionCtx.BodyStripped ?? sessionCtx.Body ?? "").trim();
+    const query = extractSearchQuery(raw);
+    if (query) {
+      try {
+        const res = await runFlooSearch(query);
+        const logPrefix = "[floo-pre-search]";
+        if (res.ok && res.results && res.results.length > 0) {
+          logVerbose(
+            `${logPrefix} ${query} → ${res.results.length} results (${res.provider ?? "web"})`,
+          );
+          const lines = res.results.slice(0, 8).map((r) => {
+            const t = (r.title ?? "").trim();
+            const l = (r.link ?? "").trim();
+            const s = (r.snippet ?? "").trim();
+            return l ? `- ${t || "Résultat"}: ${s || l}\n  ${l}` : `- ${t || s || "Résultat"}`;
+          });
+          searchResultsBlock = `\n\n[Résultats de recherche web réels (${res.provider ?? "web"}), requête: "${query}"]:\n${lines.join("\n")}\n\nRéponds UNIQUEMENT en t'appuyant sur ces résultats. N'invente rien.`;
+        } else {
+          logVerbose(`${logPrefix} ${query} → 0 results${res.error ? ` (${res.error})` : ""}`);
+          searchResultsBlock = `\n\n[Recherche web effectuée pour "${query}" - aucun résultat trouvé. Dis à l'utilisateur que tu n'as rien trouvé pour cette requête, sans inventer.]`;
+        }
+      } catch (e) {
+        logVerbose(
+          `[floo-pre-search] ${query} failed: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+    }
+  }
+  const flooSearchHint =
+    looksLikeSearch && !searchResultsBlock
+      ? "\n\n[IMPORTANT - RECHERCHE WEB] L'utilisateur demande une recherche. Utilise l'outil floo_search si disponible, sinon informe poliment."
+      : "";
+  const extraSystemPrompt = [groupIntro, groupSystemPrompt, flooSearchHint]
+    .filter(Boolean)
+    .join("\n\n");
   const baseBody = sessionCtx.BodyStripped ?? sessionCtx.Body ?? "";
   // Use CommandBody/RawBody for bare reset detection (clean message without structural context).
   const rawBodyTrimmed = (ctx.CommandBody ?? ctx.RawBody ?? ctx.Body ?? "").trim();
@@ -245,7 +336,9 @@ export async function runPreparedReply(
   sessionEntry = skillResult.sessionEntry ?? sessionEntry;
   currentSystemSent = skillResult.systemSent;
   const skillsSnapshot = skillResult.skillsSnapshot;
-  const prefixedBody = [threadStarterNote, prefixedBodyBase].filter(Boolean).join("\n\n");
+  const prefixedBody = [threadStarterNote, searchResultsBlock, prefixedBodyBase]
+    .filter(Boolean)
+    .join("\n\n");
   const mediaNote = buildInboundMediaNote(ctx);
   const mediaReplyHint = mediaNote
     ? "To send an image back, prefer the message tool (media/path/filePath). If you must inline, use MEDIA:/path or MEDIA:https://example.com/image.jpg (spaces ok, quote if needed). Keep caption in the text body."

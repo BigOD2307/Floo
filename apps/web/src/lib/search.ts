@@ -16,7 +16,7 @@ export interface SearchResponse {
 }
 
 const SERPER_ENDPOINT = "https://google.serper.dev/search"
-const MAX_RESULTS = 10
+const MAX_RESULTS = 15
 
 async function searchSerper(query: string): Promise<SearchResultItem[]> {
   const key = process.env.SERPER_API_KEY?.trim()

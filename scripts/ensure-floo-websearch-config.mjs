@@ -55,15 +55,22 @@ if (!hasWeb) {
   cfg.tools.sandbox.tools.allow = allow;
 }
 
-// alsoAllow ensures group:web even when a restrictive profile (e.g. messaging) is used
+// alsoAllow: group:web (search), group:memory (mémoire), group:automation (cron/rappel)
 const alsoAllow = Array.isArray(cfg.tools.alsoAllow) ? [...cfg.tools.alsoAllow] : [];
-const hasAlsoWeb = alsoAllow.some((e) => e === WEB_GROUP || e === "floo_search" || e === "floo_scrape");
-if (!hasAlsoWeb) {
-  alsoAllow.push(WEB_GROUP);
-  cfg.tools.alsoAllow = alsoAllow;
+const extras = ["group:web", "group:memory", "group:automation"];
+let addedExtras = 0;
+for (const e of extras) {
+  if (!alsoAllow.some((x) => x === e || x === e.replace("group:", ""))) {
+    alsoAllow.push(e);
+    addedExtras++;
+  }
 }
+if (addedExtras > 0) cfg.tools.alsoAllow = alsoAllow;
+
+cfg.tools.profile = cfg.tools.profile || "full";
 
 fs.mkdirSync(path.dirname(flooPath), { recursive: true });
 fs.writeFileSync(flooPath, JSON.stringify(cfg, null, 2));
 console.log("tools.sandbox.tools.allow includes group:web:", hasWeb ? "already" : "added");
-console.log("tools.alsoAllow includes group:web:", hasAlsoWeb ? "already" : "added");
+console.log("tools.alsoAllow:", addedExtras > 0 ? `added ${addedExtras} group(s)` : "unchanged");
+console.log("tools.profile:", cfg.tools.profile);

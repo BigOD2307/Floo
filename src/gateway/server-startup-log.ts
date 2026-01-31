@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../agents/defaults.js";
 import { resolveConfiguredModelRef } from "../agents/model-selection.js";
+import { createFlooSearchTool } from "../agents/tools/floo-api-tools.js";
 import type { loadConfig } from "../config/config.js";
 import { getResolvedLoggerSettings } from "../logging.js";
 
@@ -22,6 +23,10 @@ export function logGatewayStartup(params: {
   params.log.info(`agent model: ${modelRef}`, {
     consoleMessage: `agent model: ${chalk.whiteBright(modelRef)}`,
   });
+  const flooSearchAvailable = !!createFlooSearchTool();
+  params.log.info(
+    `floo_search: ${flooSearchAvailable ? "available" : "NOT available (set FLOO_API_BASE_URL and FLOO_GATEWAY_API_KEY)"}`,
+  );
   const scheme = params.tlsEnabled ? "wss" : "ws";
   const formatHost = (host: string) => (host.includes(":") ? `[${host}]` : host);
   const hosts =
