@@ -57,7 +57,7 @@ if (!hasWeb) {
 
 // alsoAllow: group:web (search), group:memory (mémoire), group:automation (cron/rappel)
 const alsoAllow = Array.isArray(cfg.tools.alsoAllow) ? [...cfg.tools.alsoAllow] : [];
-const extras = ["group:web", "group:memory", "group:automation"];
+const extras = ["group:web", "group:floo", "group:memory", "group:automation"];
 let addedExtras = 0;
 for (const e of extras) {
   if (!alsoAllow.some((x) => x === e || x === e.replace("group:", ""))) {

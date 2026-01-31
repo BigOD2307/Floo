@@ -37,10 +37,33 @@ model User {
   lastActivity  DateTime?
 
   // Relations
-  transactions  Transaction[]
-  sessions      Session[]
+  transactions   Transaction[]
+  sessions       Session[]
+  integrations   Integration[]
 
   @@map("users")
+}
+
+// Intégrations OAuth (Google, Outlook, etc.)
+model Integration {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  provider    String   // "google" | "outlook" | "apple"
+  scope       String   // "gmail,calendar" | "mail" etc.
+  accessToken String   // Chiffré ou en clair (à sécuriser en prod)
+  refreshToken String?
+  expiresAt   DateTime?
+
+  metadata    Json?    // Données additionnelles (email lié, etc.)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, provider])
+  @@map("integrations")
+  @@index([userId])
 }
 
 enum TransactionType {

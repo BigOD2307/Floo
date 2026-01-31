@@ -14,6 +14,7 @@ export const TOOL_GROUPS: Record<string, string[]> = {
   // NOTE: Keep canonical (lowercase) tool names here.
   "group:memory": ["memory_search", "memory_get"],
   "group:web": ["web_search", "web_fetch", "floo_search", "floo_scrape"],
+  "group:floo": ["floo_search", "floo_scrape", "floo_image_generate", "floo_reservation"],
   // Basic workspace/file tools
   "group:fs": ["read", "write", "edit", "apply_patch"],
   // Host/runtime execution tools
@@ -54,6 +55,8 @@ export const TOOL_GROUPS: Record<string, string[]> = {
     "web_fetch",
     "floo_search",
     "floo_scrape",
+    "floo_image_generate",
+    "floo_reservation",
     "image",
   ],
 };

@@ -6,6 +6,8 @@
 |------|------|---------------|
 | **floo_search** | Recherche web (Serper/DuckDuckGo) | POST /api/tools/search |
 | **floo_scrape** | Scraper une URL (titre, texte, liens) | POST /api/tools/scrape |
+| **floo_image_generate** | Génération d'images (Flux.2 Pro/Flex via OpenRouter) | POST /api/tools/image |
+| **floo_reservation** | Recherche réservation (restaurants, hôtels) | POST /api/tools/reservation |
 | **message** | Envoyer un message (réponse WhatsApp) | Gateway natif |
 | **sessions_list** | Lister les sessions | Gateway natif |
 | **sessions_history** | Historique d'une session | Gateway natif |
@@ -37,12 +39,11 @@
 - **Backend** : `POST /api/tools/payment/init` (Wave API, Orange Money, etc.).
 - **Complexité** : Élevée (KYC, conformité, webhooks).
 
-### 4. **Images** (génération / édition)
-- **Utilité** : Générer des images (DALL·E, Stable Diffusion).
-- **Backend** : Nouvelle route ou modèle OpenRouter avec vision.
-- **Complexité** : Moyenne (coût par image).
+### 4. ~~**Images**~~ ✅ FAIT (Flux.2 Pro + Flex via OpenRouter)
 
-### 5. **Réservation** (restaurants, événements)
+### 5. ~~**Réservation**~~ ✅ Placeholder (recherche web pour l'instant)
+
+### 6. **Réservation avancée** (APIs dédiées)
 - **Utilité** : Chercher et suggérer des réservations.
 - **Backend** : Intégration type OpenTable, ou scraping ciblé.
 - **Complexité** : Élevée (APIs souvent payantes ou fermées).

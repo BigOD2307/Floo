@@ -333,6 +333,16 @@ export default function DashboardPage() {
             ></iconify-icon>
             <span className="hidden lg:block">Analytics</span>
           </button>
+          <a
+            href="/dashboard/integrations"
+            className="w-full nav-item text-neutral-400 flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all hover:bg-white/5 hover:text-white group text-left"
+          >
+            <iconify-icon
+              icon="solar:link-round-linear"
+              className="text-xl group-hover:scale-110 transition-transform"
+            ></iconify-icon>
+            <span className="hidden lg:block">Intégrations</span>
+          </a>
           <button
             onClick={() => switchPage("settings")}
             className={`w-full nav-item ${

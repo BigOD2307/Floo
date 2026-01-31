@@ -21,6 +21,24 @@ const FlooScrapeSchema = Type.Object({
   url: Type.String({ description: "URL to scrape (e.g. 'https://example.com')." }),
 });
 
+const FlooImageGenerateSchema = Type.Object({
+  prompt: Type.String({
+    description:
+      "Description de l'image à générer (ex: 'un coucher de soleil sur la lagune d'Abidjan').",
+  }),
+});
+
+const FlooReservationSchema = Type.Object({
+  query: Type.String({
+    description: "Recherche de réservation (ex: 'restaurant Abidjan', 'hôtel Yamoussoukro').",
+  }),
+  type: Type.Optional(
+    Type.String({
+      description: "Type: restaurant, hotel, événement.",
+    }),
+  ),
+});
+
 function getBaseUrl(): string | undefined {
   const u = process.env[BASE_URL_ENV]?.trim();
   if (!u) return undefined;
@@ -159,6 +177,64 @@ export function createFlooScrapeTool(): AnyAgentTool | null {
           text: "",
           links: [],
           error: error || "floo_scrape failed",
+        });
+      return jsonResult(data);
+    },
+  };
+}
+
+export function createFlooImageGenerateTool(): AnyAgentTool | null {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  if (!base || !key) return null;
+
+  return {
+    label: "Floo Image Generate",
+    name: "floo_image_generate",
+    description:
+      "Génère une image à partir d'un prompt texte (Flux via OpenRouter). Utilise pour créer des visuels, illustrations, logos. Paramètre: prompt (description en français ou anglais).",
+    parameters: FlooImageGenerateSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const prompt = readStringParam(params, "prompt", { required: true });
+      const { ok, data, error } = await flooFetch("/api/tools/image", { prompt }, key);
+      if (!ok)
+        return jsonResult({
+          ok: false,
+          error: error || "floo_image_generate failed",
+          imageUrl: null,
+        });
+      const d = data as { ok?: boolean; imageUrl?: string; model?: string };
+      return jsonResult({
+        ok: true,
+        imageUrl: d.imageUrl ?? null,
+        model: d.model ?? null,
+      });
+    },
+  };
+}
+
+export function createFlooReservationTool(): AnyAgentTool | null {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  if (!base || !key) return null;
+
+  return {
+    label: "Floo Reservation",
+    name: "floo_reservation",
+    description:
+      "Recherche des options de réservation (restaurants, hôtels). Pour l'instant retourne des résultats de recherche. Paramètre: query (ex: 'restaurant garba Abidjan').",
+    parameters: FlooReservationSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const query = readStringParam(params, "query", { required: true });
+      const type = (params.type as string) || "restaurant";
+      const { ok, data, error } = await flooFetch("/api/tools/reservation", { query, type }, key);
+      if (!ok)
+        return jsonResult({
+          ok: false,
+          error: error || "floo_reservation failed",
+          results: [],
         });
       return jsonResult(data);
     },
