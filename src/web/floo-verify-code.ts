@@ -38,17 +38,17 @@ export async function flooCheckUserLinked(phoneNumber: string): Promise<boolean>
 
 export type FlooVerifyCodeResult =
   | { success: true; user: { name: string | null } }
-  | { success: false };
+  | { success: false; error?: string };
 
 /**
- * Vérifie un code auprès de l’app Floo et lie le compte WhatsApp si valide.
+ * Vérifie un code auprès de l'app Floo et lie le compte WhatsApp si valide.
  */
 export async function flooVerifyCode(
   code: string,
   phoneNumber: string,
 ): Promise<FlooVerifyCodeResult> {
   const base = getBaseUrl();
-  if (!base) return { success: false };
+  if (!base) return { success: false, error: "Configuration manquante" };
 
   const formattedPhone = phoneNumber.startsWith("+") ? phoneNumber : `+${phoneNumber}`;
   const url = `${base}/api/whatsapp/verify-code`;
@@ -68,13 +68,15 @@ export async function flooVerifyCode(
       user?: { name?: string | null };
       error?: string;
     };
-    if (!res.ok || !data.success) return { success: false };
+    if (!res.ok || !data.success) {
+      return { success: false, error: data.error ?? "Code invalide" };
+    }
     return {
       success: true,
       user: { name: data.user?.name ?? null },
     };
   } catch {
     clearTimeout(t);
-    return { success: false };
+    return { success: false, error: "Erreur de connexion" };
   }
 }

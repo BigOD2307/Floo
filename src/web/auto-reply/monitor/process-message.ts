@@ -218,6 +218,16 @@ export async function processMessage(params: {
           await params.msg.reply(`Compte lié avec succès ! Bonjour ${name} 👋`);
           whatsappInboundLog.info(`Floo code verified and linked: ${phone} -> code ${code}`);
           return true;
+        } else {
+          // Afficher l'erreur à l'utilisateur
+          const errorMsg = result.error ?? "Code invalide";
+          await params.msg.reply(
+            `Erreur: ${errorMsg}. Vérifie ton code sur https://floo-ecru.vercel.app/dashboard`,
+          );
+          whatsappInboundLog.info(
+            `Floo code verification failed: ${phone} -> code ${code} (${errorMsg})`,
+          );
+          return true;
         }
       }
     }

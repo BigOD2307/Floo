@@ -28,18 +28,16 @@ export async function POST(req: Request) {
       )
     }
 
-    // Vérifier que le numéro correspond (formaté)
+    // Formater le numéro
     const formattedPhone = phoneNumber.startsWith("+") ? phoneNumber : `+${phoneNumber}`
-    
-    // Si l'utilisateur a déjà un numéro enregistré, vérifier qu'il correspond
+
+    // Si l'utilisateur a déjà un numéro différent enregistré, on le met à jour
+    // (le code est le secret, donc si l'utilisateur a le bon code, il peut lier son WhatsApp)
     if (user.phoneNumber && user.phoneNumber !== formattedPhone) {
-      return NextResponse.json(
-        { error: "Ce code est associé à un autre numéro de téléphone" },
-        { status: 400 }
-      )
+      console.log(`⚠️ Mise à jour du numéro WhatsApp: ${user.phoneNumber} -> ${formattedPhone} (user: ${user.id})`)
     }
 
-    // Lier le compte WhatsApp
+    // Lier le compte WhatsApp (met à jour le numéro si différent)
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
