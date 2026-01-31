@@ -33,7 +33,7 @@ import { deliverWebReply } from "../deliver-reply.js";
 import { whatsappInboundLog, whatsappOutboundLog } from "../loggers.js";
 import type { WebInboundMsg } from "../types.js";
 import { elide } from "../util.js";
-import { flooVerifyCode } from "../../floo-verify-code.js";
+import { flooCheckUserLinked, flooVerifyCode } from "../../floo-verify-code.js";
 import { maybeSendAckReaction } from "./ack-reaction.js";
 import { formatGroupMembers } from "./group-members.js";
 import { trackBackgroundTask, updateLastRouteInBackground } from "./last-route.js";
@@ -197,12 +197,16 @@ export async function processMessage(params: {
   });
 
   // Floo: interception des messages « code » pour liaison WhatsApp (DM uniquement)
+  // Format du code: FL-XXXX ou code 6 caractères alphanumériques (généré par l'app)
   if (params.msg.chatType !== "group") {
     const rawBody = (params.msg.body ?? "").trim().replace(/\s+/g, " ").trim();
     const firstToken = rawBody.split(/\s+/)[0] ?? rawBody;
-    const codeMatch = /^FL-\d{4}$/i.exec(firstToken) ?? /^[A-Za-z0-9]{4,8}$/i.exec(firstToken);
+    // Matcher UNIQUEMENT:
+    // 1. Format FL-XXXX (ex: FL-A3B9) - 4 caractères après FL-
+    // 2. Code exact de 6 caractères alphanumériques (ex: A3B9X2) - format généré par generateUniqueCode
+    const codeMatch = /^FL-[A-Z0-9]{4}$/i.exec(firstToken) ?? /^[A-Z2-9]{6}$/i.exec(firstToken);
     if (codeMatch) {
-      const code = codeMatch[0];
+      const code = codeMatch[0].toUpperCase();
       const senderE164 =
         params.msg.senderE164 ??
         (params.msg.from?.includes("@") ? jidToE164(params.msg.from) : (params.msg.from ?? ""));
@@ -215,6 +219,26 @@ export async function processMessage(params: {
           whatsappInboundLog.info(`Floo code verified and linked: ${phone} -> code ${code}`);
           return true;
         }
+      }
+    }
+
+    // Floo: numéro public — exiger un compte lié avant d'accéder à l'IA
+    const dmPhone =
+      params.msg.senderE164 != null
+        ? normalizeE164(params.msg.senderE164)
+        : params.msg.from?.includes("@")
+          ? normalizeE164(jidToE164(params.msg.from))
+          : params.msg.from
+            ? normalizeE164(params.msg.from)
+            : "";
+    if (dmPhone) {
+      const linked = await flooCheckUserLinked(dmPhone);
+      if (!linked) {
+        await params.msg.reply(
+          "Pour utiliser Floo, envoie ton code de liaison (format FL-XXXX). Tu le trouves sur ton dashboard : https://floo-ecru.vercel.app/dashboard",
+        );
+        whatsappInboundLog.info(`Floo: user ${dmPhone} not linked, asked for code`);
+        return true;
       }
     }
   }

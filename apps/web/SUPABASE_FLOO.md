@@ -9,25 +9,26 @@ Tables : **users**, **transactions**, **sessions** — sans RLS.
 
 Pour Prisma et Vercel, il faut l’**URL de connexion PostgreSQL** (pas l’anon key).
 
+**Sur Vercel : utilise toujours l’URL du pooler** (port 6543, avec `?pgbouncer=true`). La connexion directe (port 5432) échoue souvent depuis Vercel (« Can't reach database server »). Voir **DATABASE_VERCEL_FIX.md** si tu as cette erreur.
+
 **Où la trouver dans Supabase :**
 
-- **Option A** : Dans le dashboard de ton projet, clique sur **« Connect »** (en haut à droite ou dans le menu). Tu vois les chaînes de connexion (Direct, Pooler Session, Pooler Transaction). Choisis **Direct** ou **Session** (pour Vercel, Session pooler est souvent mieux).
-- **Option B** : Menu de gauche → **Project Settings** (icône engrenage en bas) → onglet **Database**. Tu y trouves le mot de passe et le lien « **Connection string** » / « **URI** ».
-- **Lien direct** (remplace `TON_PROJECT_REF` par l’id du projet, ex. `nsvksuvdqnnukersbsoy`) :  
+- **Option A** : Dans le dashboard de ton projet, clique sur **« Connect »** (en haut à droite ou dans le menu). Tu vois les chaînes de connexion (Direct, Pooler Session, Pooler Transaction). Pour **Vercel** : choisis **Transaction** ou **Session** pooler (port **6543**).
+- **Option B** : Menu de gauche → **Project Settings** (icône engrenage en bas) → onglet **Database**. Tu y trouves le mot de passe et les **Connection string** (Direct / Pooler).
+- **Lien direct** :  
   `https://supabase.com/dashboard/project/nsvksuvdqnnukersbsoy/settings/database`
 
-4. Copie l’URL et remplace `[YOUR-PASSWORD]` par le **mot de passe de la base** (celui que tu as défini pour le rôle `postgres` à la création du projet ; si tu l’as oublié, tu peux le réinitialiser sur la même page Database).
+Remplace `[YOUR-PASSWORD]` par le **mot de passe de la base** (rôle `postgres`). Si tu l’as oublié, réinitialise-le sur la même page Database.
 
-Format attendu :
+**Format pooler (pour Vercel, recommandé) — URL prête à l’emploi :**
 ```txt
-postgresql://postgres.[ref]:[MOT_DE_PASSE]@aws-0-[region].pooler.supabase.com:6543/postgres?pgbouncer=true
+postgresql://postgres.nsvksuvdqnnukersbsoy:DRuJhvoNAk61ki5H@aws-1-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true
 ```
-ou connexion directe :
+
+**Format direct (local uniquement, pas Vercel) :**
 ```txt
 postgresql://postgres:[MOT_DE_PASSE]@db.nsvksuvdqnnukersbsoy.supabase.co:5432/postgres
 ```
-
-Si tu es en **Europe**, l’hôte pooler est souvent `aws-0-eu-central-1.pooler.supabase.com`.
 
 ---
 

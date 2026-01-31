@@ -76,10 +76,24 @@ async function flooFetch(
   }
 }
 
+let flooToolsSkippedLogged = false;
+
+function logFlooToolsSkippedOnce(reason: string) {
+  if (flooToolsSkippedLogged) return;
+  flooToolsSkippedLogged = true;
+  console.warn(
+    `[floo-api-tools] floo_search/floo_scrape not available: ${reason}. Set FLOO_API_BASE_URL and FLOO_GATEWAY_API_KEY on the gateway process (e.g. systemd service).`,
+  );
+}
+
 export function createFlooSearchTool(): AnyAgentTool | null {
   const base = getBaseUrl();
   const key = getApiKey();
-  if (!base || !key) return null;
+  if (!base || !key) {
+    const reason = !base ? "FLOO_API_BASE_URL not set" : "FLOO_GATEWAY_API_KEY not set";
+    logFlooToolsSkippedOnce(reason);
+    return null;
+  }
 
   return {
     label: "Floo Search",
@@ -101,7 +115,7 @@ export function createFlooSearchTool(): AnyAgentTool | null {
 export function createFlooScrapeTool(): AnyAgentTool | null {
   const base = getBaseUrl();
   const key = getApiKey();
-  if (!base || !key) return null;
+  if (!base || !key) return null; // already logged by createFlooSearchTool
 
   return {
     label: "Floo Scrape",

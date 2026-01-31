@@ -2,6 +2,8 @@
 
 Guide en une page : push → Vercel → config gateway VPS → tests.
 
+**URL de prod :** [https://floo-ecru.vercel.app](https://floo-ecru.vercel.app)
+
 ---
 
 ## 1. Pousser le code
@@ -40,7 +42,7 @@ Note les deux valeurs : tu les utiliseras dans Vercel (étape 4) et sur le VPS (
 
    | Name | Value |
    |------|--------|
-   | `DATABASE_URL` | `postgresql://postgres:DRuJhvoNAk61ki5H@db.nsvksuvdqnnukersbsoy.supabase.co:5432/postgres` |
+   | `DATABASE_URL` | `postgresql://postgres.nsvksuvdqnnukersbsoy:DRuJhvoNAk61ki5H@aws-1-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true` |
    | `NEXTAUTH_URL` | `https://floo-xxx.vercel.app` (temporaire ; tu corrigeras après le 1er deploy) |
    | `NEXTAUTH_SECRET` | *(valeur de l’étape 2)* |
    | `FLOO_GATEWAY_API_KEY` | *(valeur de l’étape 2)* |
@@ -64,14 +66,31 @@ Tu as maintenant l’app Floo en ligne sur cette URL.
 
 Le service `floo` sur le VPS doit appeler ton app Vercel (liaison WhatsApp, recherche, etc.).
 
-**Option A — Depuis ta machine (recommandé)**
+**Pour floo-ecru.vercel.app (une seule commande)**
+
+Si ta clé sur Vercel est **`floo-gateway-ma-cle-2026-secret`** (même valeur sur VPS) :
+
+```bash
+cd "/Users/ousmanedicko/Desktop/Dicken AI/AI Product/Floo"
+VPS_PASSWORD='<ton_mot_de_passe_VPS>' FLOO_GATEWAY_API_KEY='floo-gateway-ma-cle-2026-secret' ./scripts/run-set-gateway-floo-ecru.sh
+```
+
+Sinon, mets ta clé dans `apps/web/.env` (`FLOO_GATEWAY_API_KEY=...`) et lance :
+
+```bash
+VPS_PASSWORD='<ton_mot_de_passe_VPS>' ./scripts/run-set-gateway-floo-ecru.sh
+```
+
+Sur Vercel, **FLOO_GATEWAY_API_KEY** doit être **exactement la même** que sur le VPS (sinon recherche / verify-code échouent).
+
+**Option A — URL personnalisée**
 
 ```bash
 cd "/Users/ousmanedicko/Desktop/Dicken AI/AI Product/Floo"
 
 export VPS_PASSWORD='<ton_mot_de_passe_VPS>'
-export FLOO_VERCEL_URL='https://ton-projet.vercel.app'   # l’URL réelle de l’étape 4
-export FLOO_GATEWAY_API_KEY='<même_clé_que_sur_Vercel>'
+export FLOO_VERCEL_URL='https://ton-projet.vercel.app'   # ou https://floo-ecru.vercel.app
+export FLOO_GATEWAY_API_KEY='<même_clé_que_sur_Vercel>'  # ou laisse le script la lire depuis apps/web/.env
 
 ./scripts/run-set-gateway-vercel.sh
 ```
@@ -81,15 +100,12 @@ export FLOO_GATEWAY_API_KEY='<même_clé_que_sur_Vercel>'
 ```bash
 ssh root@38.180.244.104
 
-sudo bash -c 'cat > /tmp/set-vercel.sh << "EOF"
-SVC=/etc/systemd/system/floo.service
-URL="https://ton-projet.vercel.app"   # remplace par ton URL Vercel
-KEY="ta-meme-cle-que-sur-vercel"
-sed -i "s|^Environment=FLOO_API_BASE_URL=.*|Environment=FLOO_API_BASE_URL=$URL|" "$SVC"
-sed -i "s|^Environment=FLOO_GATEWAY_API_KEY=.*|Environment=FLOO_GATEWAY_API_KEY=$KEY|" "$SVC"
-systemctl daemon-reload && systemctl restart floo
-EOF'
-sudo bash /tmp/set-vercel.sh
+# Remplace URL et KEY par tes valeurs (ex. https://floo-ecru.vercel.app et la clé dans apps/web/.env)
+URL="https://floo-ecru.vercel.app"
+KEY="<même_clé_que_FLOO_GATEWAY_API_KEY_sur_Vercel>"
+sudo sed -i "s|^Environment=FLOO_API_BASE_URL=.*|Environment=FLOO_API_BASE_URL=$URL|" /etc/systemd/system/floo.service
+sudo sed -i "s|^Environment=FLOO_GATEWAY_API_KEY=.*|Environment=FLOO_GATEWAY_API_KEY=$KEY|" /etc/systemd/system/floo.service
+sudo systemctl daemon-reload && sudo systemctl restart floo
 ```
 
 ---
@@ -97,10 +113,10 @@ sudo bash /tmp/set-vercel.sh
 ## 6. Tests à faire
 
 1. **Dashboard**  
-   Ouvre `https://ton-projet.vercel.app/dashboard` → connecte-toi (ou inscris-toi).
+   Ouvre [https://floo-ecru.vercel.app/dashboard](https://floo-ecru.vercel.app/dashboard) → connecte-toi (ou inscris-toi).
 
 2. **Code WhatsApp**  
-   Dans le dashboard, génère un code (ex. `FL-1234`). Sur WhatsApp, envoie ce code au numéro Floo. Tu dois recevoir une confirmation du type « Compte lié avec succès ! ».
+   Dans le dashboard [floo-ecru.vercel.app/dashboard](https://floo-ecru.vercel.app/dashboard), génère un code (ex. `FL-1234`). Sur WhatsApp, envoie ce code au numéro Floo. Tu dois recevoir une confirmation du type « Compte lié avec succès ! ».
 
 3. **Recherche web**  
    Envoie par exemple : « Cherche les meilleurs restaurants garba Abidjan pas chers ». Floo doit répondre en utilisant la recherche (pas « je ne peux pas chercher »).
@@ -110,12 +126,30 @@ sudo bash /tmp/set-vercel.sh
 
 ---
 
+## Si ton app est déjà sur floo-ecru.vercel.app
+
+1. **Vercel** (Dashboard → ton projet → Settings → Environment Variables)  
+   - `NEXTAUTH_URL` = `https://floo-ecru.vercel.app`  
+   - `FLOO_GATEWAY_API_KEY` = **exactement la même** valeur que dans `apps/web/.env` (sinon le gateway ne pourra pas appeler l’API).  
+   Si tu modifies une variable, fais **Redeploy** (Deployments → … → Redeploy).
+
+2. **Gateway VPS (une commande)**  
+   Depuis ta machine, dans le repo Floo (remplace `<ton_mdp_VPS>` par ton mot de passe VPS) :
+   ```bash
+   VPS_PASSWORD='<ton_mdp_VPS>' FLOO_GATEWAY_API_KEY='floo-gateway-ma-cle-2026-secret' ./scripts/run-set-gateway-floo-ecru.sh
+   ```
+   Le script configure `FLOO_API_BASE_URL=https://floo-ecru.vercel.app` et `FLOO_GATEWAY_API_KEY=floo-gateway-ma-cle-2026-secret` dans le service `floo` sur le VPS. La clé doit être **identique** à celle sur Vercel.
+
+3. **Tester** : [floo-ecru.vercel.app/dashboard](https://floo-ecru.vercel.app/dashboard) → code WhatsApp → recherche web (voir § 6).
+
+---
+
 ## Récap des URLs et clés
 
 | Où | Quoi |
 |----|------|
-| **Vercel** | `DATABASE_URL` (Supabase), `NEXTAUTH_URL` (URL Vercel finale), `NEXTAUTH_SECRET`, `FLOO_GATEWAY_API_KEY` |
-| **VPS (floo.service)** | `FLOO_API_BASE_URL` = URL Vercel, `FLOO_GATEWAY_API_KEY` = même valeur que Vercel |
+| **Vercel** | `DATABASE_URL` (Supabase), `NEXTAUTH_URL` = `https://floo-ecru.vercel.app`, `NEXTAUTH_SECRET`, `FLOO_GATEWAY_API_KEY` (= même que apps/web/.env) |
+| **VPS (floo.service)** | `FLOO_API_BASE_URL` = `https://floo-ecru.vercel.app`, `FLOO_GATEWAY_API_KEY` = même valeur que Vercel |
 
 En cas d’erreur au build Vercel : voir **apps/web/DEPLOY_VERCEL_ETAPES.md** (section « En cas d’erreur au build »).  
 Pour le gateway : **CONFIG_GATEWAY.md** et **scripts/verify-websearch-ready.sh**.

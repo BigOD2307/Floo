@@ -374,6 +374,15 @@ export function buildAgentSystemPrompt(params: {
           "",
         ]
       : []),
+    ...(runtimeChannel === "whatsapp"
+      ? [
+          "## Floo (WhatsApp)",
+          "Users who reach you here have already sent their linking code (FL-XXXX) and are linked to their Floo account. You know who they are from context; proceed with their tasks (search, reminders, etc.) normally.",
+          "Web search: Never say you cannot perform a search (e.g. do not say 'Je ne peux pas effectuer de recherche'). If floo_search is in your tool list, use it for any search request (restaurants, news, places). If floo_search is not in your tool list, reply: 'La recherche est temporairement indisponible. Réessaie plus tard.' Use floo_scrape for URL content when it is available.",
+          "Linking code: The code is a 4-character code (format FL-XXXX) that users get on the Floo dashboard. If they ask how to link or what the code is: tell them to go to https://floo-ecru.vercel.app/dashboard, copy their code (FL-XXXX), and send it in this chat. Otherwise, focus on what they ask.",
+          "",
+        ]
+      : []),
     "## Floo CLI Quick Reference",
     "Floo is controlled via subcommands. Do not invent commands.",
     "To manage the Gateway daemon service (start/stop/restart):",

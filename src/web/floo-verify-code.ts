@@ -12,6 +12,30 @@ function getBaseUrl(): string | undefined {
   return u.replace(/\/$/, "");
 }
 
+/**
+ * Vérifie si le numéro WhatsApp est déjà lié à un compte Floo (GET verify-code).
+ * Retourne true si lié ou si FLOO_API_BASE_URL n'est pas configuré (ne pas bloquer).
+ */
+export async function flooCheckUserLinked(phoneNumber: string): Promise<boolean> {
+  const base = getBaseUrl();
+  if (!base) return true;
+
+  const formatted = phoneNumber.startsWith("+") ? phoneNumber : `+${phoneNumber}`;
+  const url = `${base}/api/whatsapp/verify-code?phoneNumber=${encodeURIComponent(formatted)}`;
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+
+  try {
+    const res = await fetch(url, { method: "GET", signal: controller.signal });
+    clearTimeout(t);
+    const data = (await res.json().catch(() => ({}))) as { success?: boolean };
+    return res.ok === true && data.success === true;
+  } catch {
+    clearTimeout(t);
+    return false;
+  }
+}
+
 export type FlooVerifyCodeResult =
   | { success: true; user: { name: string | null } }
   | { success: false };
