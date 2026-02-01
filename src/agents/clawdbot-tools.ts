@@ -18,12 +18,18 @@ import { createSessionsSendTool } from "./tools/sessions-send-tool.js";
 import { createSessionsSpawnTool } from "./tools/sessions-spawn-tool.js";
 import {
   createFlooCalendarEventsTool,
+  createFlooChartTool,
+  createFlooDocumentTool,
   createFlooGmailListTool,
   createFlooGmailSendTool,
   createFlooImageGenerateTool,
+  createFlooPdfGenerateTool,
+  createFlooPresentationTool,
+  createFlooQrTool,
   createFlooReservationTool,
   createFlooScrapeTool,
   createFlooSearchTool,
+  createFlooSummarizeTool,
 } from "./tools/floo-api-tools.js";
 import { createWebFetchTool, createWebSearchTool } from "./tools/web-tools.js";
 import { createTtsTool } from "./tools/tts-tool.js";
@@ -88,6 +94,12 @@ export function createClawdbotTools(options?: {
   const flooGmailSendTool = createFlooGmailSendTool(options?.senderE164);
   const flooGmailListTool = createFlooGmailListTool(options?.senderE164);
   const flooCalendarEventsTool = createFlooCalendarEventsTool(options?.senderE164);
+  const flooPdfGenerateTool = createFlooPdfGenerateTool();
+  const flooPresentationTool = createFlooPresentationTool();
+  const flooDocumentTool = createFlooDocumentTool();
+  const flooQrTool = createFlooQrTool();
+  const flooSummarizeTool = createFlooSummarizeTool();
+  const flooChartTool = createFlooChartTool();
   const tools: AnyAgentTool[] = [
     createBrowserTool({
       sandboxBridgeUrl: options?.sandboxBrowserBridgeUrl,
@@ -161,6 +173,12 @@ export function createClawdbotTools(options?: {
     ...(flooGmailSendTool ? [flooGmailSendTool] : []),
     ...(flooGmailListTool ? [flooGmailListTool] : []),
     ...(flooCalendarEventsTool ? [flooCalendarEventsTool] : []),
+    ...(flooPdfGenerateTool ? [flooPdfGenerateTool] : []),
+    ...(flooPresentationTool ? [flooPresentationTool] : []),
+    ...(flooDocumentTool ? [flooDocumentTool] : []),
+    ...(flooQrTool ? [flooQrTool] : []),
+    ...(flooSummarizeTool ? [flooSummarizeTool] : []),
+    ...(flooChartTool ? [flooChartTool] : []),
     ...(imageTool ? [imageTool] : []),
   ];
 

@@ -59,6 +59,66 @@ const FlooCalendarEventsSchema = Type.Object({
   description: Type.Optional(Type.String({ description: "Description (pour create)." })),
 });
 
+const FlooPdfGenerateSchema = Type.Object({
+  title: Type.String({ description: "Titre du document PDF." }),
+  content: Type.String({
+    description: "Contenu du PDF (texte, paragraphes). Peut inclure des sauts de ligne.",
+  }),
+});
+
+const FlooPresentationSchema = Type.Object({
+  title: Type.String({ description: "Titre de la présentation." }),
+  slides: Type.Array(
+    Type.Object({
+      title: Type.Optional(Type.String()),
+      content: Type.String(),
+    }),
+    {
+      description: "Liste des slides. Chaque slide: title (optionnel), content (texte).",
+    },
+  ),
+});
+
+const FlooDocumentSchema = Type.Object({
+  type: Type.Optional(
+    Type.Union(
+      [Type.Literal("letter"), Type.Literal("cv"), Type.Literal("email"), Type.Literal("general")],
+      {
+        description: "Type de document: letter, cv, email, general.",
+      },
+    ),
+  ),
+  title: Type.String({ description: "Titre du document." }),
+  content: Type.String({ description: "Contenu principal." }),
+});
+
+const FlooQrSchema = Type.Object({
+  data: Type.String({
+    description: "Texte ou URL à encoder dans le QR code.",
+  }),
+});
+
+const FlooSummarizeSchema = Type.Object({
+  content: Type.Optional(Type.String({ description: "Texte à résumer." })),
+  url: Type.Optional(Type.String({ description: "URL à résumer (scrape puis résumé)." })),
+});
+
+const FlooChartSchema = Type.Object({
+  type: Type.Optional(
+    Type.Union(
+      [Type.Literal("bar"), Type.Literal("line"), Type.Literal("pie"), Type.Literal("doughnut")],
+      { description: "Type de graphique." },
+    ),
+  ),
+  title: Type.Optional(Type.String({ description: "Titre du graphique." })),
+  labels: Type.Array(Type.String(), {
+    description: "Libellés des axes/segments (ex: ['Jan', 'Fév', 'Mar']).",
+  }),
+  data: Type.Array(Type.Number(), {
+    description: "Valeurs (même ordre que labels).",
+  }),
+});
+
 function getBaseUrl(): string | undefined {
   const u = process.env[BASE_URL_ENV]?.trim();
   if (!u) return undefined;
@@ -342,6 +402,194 @@ export function createFlooCalendarEventsTool(
       const { ok, data, error } = await flooFetch("/api/tools/calendar/events", body, key);
       if (!ok) return jsonResult({ ok: false, error: error || "floo_calendar_events failed" });
       return jsonResult(data);
+    },
+  };
+}
+
+export function createFlooPdfGenerateTool(): AnyAgentTool | null {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  if (!base || !key) return null;
+
+  return {
+    label: "Floo PDF Generate",
+    name: "floo_pdf_generate",
+    description:
+      "Génère un PDF à partir d'un titre et d'un contenu. Utilise pour rapports, CV, fiches, factures. Paramètres: title, content.",
+    parameters: FlooPdfGenerateSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const title = readStringParam(params, "title", { required: true });
+      const content = readStringParam(params, "content", { required: true });
+      const { ok, data, error } = await flooFetch("/api/tools/pdf", { title, content }, key);
+      if (!ok)
+        return jsonResult({
+          ok: false,
+          error: error || "floo_pdf_generate failed",
+          pdfUrl: null,
+        });
+      const d = data as { pdfUrl?: string };
+      return jsonResult({ ok: true, pdfUrl: d.pdfUrl ?? null });
+    },
+  };
+}
+
+export function createFlooPresentationTool(): AnyAgentTool | null {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  if (!base || !key) return null;
+
+  return {
+    label: "Floo Presentation",
+    name: "floo_presentation",
+    description:
+      "Génère une présentation PowerPoint (.pptx) à partir d'un titre et d'une liste de slides. Paramètres: title, slides (array de { title?, content }).",
+    parameters: FlooPresentationSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const title = readStringParam(params, "title", { required: true });
+      const slidesRaw = params.slides;
+      const slides = Array.isArray(slidesRaw)
+        ? (slidesRaw as Array<{ title?: string; content?: string }>).map((s) => ({
+            title: typeof s?.title === "string" ? s.title : "",
+            content: typeof s?.content === "string" ? s.content : String(s ?? ""),
+          }))
+        : [];
+      if (slides.length === 0) {
+        return jsonResult({
+          ok: false,
+          error: "slides requis (array non vide)",
+          pptxUrl: null,
+        });
+      }
+      const { ok, data, error } = await flooFetch(
+        "/api/tools/presentation",
+        { title, slides },
+        key,
+      );
+      if (!ok)
+        return jsonResult({
+          ok: false,
+          error: error || "floo_presentation failed",
+          pptxUrl: null,
+        });
+      const d = data as { pptxUrl?: string };
+      return jsonResult({ ok: true, pptxUrl: d.pptxUrl ?? null });
+    },
+  };
+}
+
+export function createFlooDocumentTool(): AnyAgentTool | null {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  if (!base || !key) return null;
+
+  return {
+    label: "Floo Document",
+    name: "floo_document",
+    description:
+      "Génère un document formaté (lettre, CV, email, general) en PDF. Paramètres: type (letter|cv|email|general), title, content.",
+    parameters: FlooDocumentSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const type = (params.type as string) || "general";
+      const title = readStringParam(params, "title", { required: true });
+      const content = readStringParam(params, "content", { required: true });
+      const { ok, data, error } = await flooFetch(
+        "/api/tools/document",
+        { type, title, content },
+        key,
+      );
+      if (!ok)
+        return jsonResult({
+          ok: false,
+          error: error || "floo_document failed",
+          pdfUrl: null,
+        });
+      const d = data as { pdfUrl?: string };
+      return jsonResult({ ok: true, pdfUrl: d.pdfUrl ?? null });
+    },
+  };
+}
+
+export function createFlooQrTool(): AnyAgentTool | null {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  if (!base || !key) return null;
+
+  return {
+    label: "Floo QR",
+    name: "floo_qr",
+    description:
+      "Génère un QR code à partir d'un texte ou URL. Paramètre: data (texte ou URL à encoder).",
+    parameters: FlooQrSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const data = readStringParam(params, "data", { required: true });
+      const { ok, data: resData, error } = await flooFetch("/api/tools/qr", { data }, key);
+      if (!ok) return jsonResult({ ok: false, error: error || "floo_qr failed", qrUrl: null });
+      const d = resData as { qrUrl?: string };
+      return jsonResult({ ok: true, qrUrl: d.qrUrl ?? null });
+    },
+  };
+}
+
+export function createFlooSummarizeTool(): AnyAgentTool | null {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  if (!base || !key) return null;
+
+  return {
+    label: "Floo Summarize",
+    name: "floo_summarize",
+    description:
+      "Résume un texte ou le contenu d'une page web. Paramètres: content (texte) ou url (page à scraper puis résumer).",
+    parameters: FlooSummarizeSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const body: Record<string, unknown> = {};
+      if (params.content) body.content = params.content;
+      if (params.url) body.url = params.url;
+      if (!body.content && !body.url) {
+        return jsonResult({ ok: false, error: "content ou url requis", summary: null });
+      }
+      const { ok, data, error } = await flooFetch("/api/tools/summarize", body, key);
+      if (!ok)
+        return jsonResult({ ok: false, error: error || "floo_summarize failed", summary: null });
+      const d = data as { summary?: string };
+      return jsonResult({ ok: true, summary: d.summary ?? null });
+    },
+  };
+}
+
+export function createFlooChartTool(): AnyAgentTool | null {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  if (!base || !key) return null;
+
+  return {
+    label: "Floo Chart",
+    name: "floo_chart",
+    description:
+      "Génère un graphique (bar, line, pie, doughnut). Paramètres: type, title?, labels (array), data (array de nombres).",
+    parameters: FlooChartSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const labels = Array.isArray(params.labels) ? params.labels.map(String) : [];
+      const data = Array.isArray(params.data)
+        ? (params.data as unknown[]).map((x) => Number(x)).filter((n) => !Number.isNaN(n))
+        : [];
+      const type = (params.type as string) || "bar";
+      const title = (params.title as string) || "";
+      const {
+        ok,
+        data: resData,
+        error,
+      } = await flooFetch("/api/tools/chart", { type, title, labels, data }, key);
+      if (!ok)
+        return jsonResult({ ok: false, error: error || "floo_chart failed", chartUrl: null });
+      const d = resData as { chartUrl?: string };
+      return jsonResult({ ok: true, chartUrl: d.chartUrl ?? null });
     },
   };
 }

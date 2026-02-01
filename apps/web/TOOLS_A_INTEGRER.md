@@ -8,6 +8,12 @@
 | **floo_scrape** | Scraper une URL (titre, texte, liens) | POST /api/tools/scrape |
 | **floo_image_generate** | Génération d'images (Flux.2 Pro/Flex via OpenRouter) | POST /api/tools/image |
 | **floo_reservation** | Recherche réservation (restaurants, hôtels) | POST /api/tools/reservation |
+| **floo_pdf_generate** | Générer PDF (rapport, CV, fiche) | POST /api/tools/pdf |
+| **floo_presentation** | Générer présentation PowerPoint | POST /api/tools/presentation |
+| **floo_document** | Document formaté (lettre, CV, email) | POST /api/tools/document |
+| **floo_qr** | Générer QR code | POST /api/tools/qr |
+| **floo_summarize** | Résumer texte ou URL | POST /api/tools/summarize |
+| **floo_chart** | Graphiques (bar, line, pie, doughnut) | POST /api/tools/chart |
 | **message** | Envoyer un message (réponse WhatsApp) | Gateway natif |
 | **sessions_list** | Lister les sessions | Gateway natif |
 | **sessions_history** | Historique d'une session | Gateway natif |
@@ -47,6 +53,21 @@
 - **Utilité** : Chercher et suggérer des réservations.
 - **Backend** : Intégration type OpenTable, ou scraping ciblé.
 - **Complexité** : Élevée (APIs souvent payantes ou fermées).
+
+---
+
+## 📄 Intégrations Floo (documents & productivité)
+
+Voir **FLOO_INTEGRATIONS_ROADMAP.md** pour le détail. Résumé :
+
+| Tool | Rôle | Priorité |
+|------|------|----------|
+| **floo_pdf_generate** | Générer PDF (rapport, CV, facture) | Haute |
+| **floo_presentation** | Créer slides (PowerPoint/Google Slides) | Haute |
+| **floo_document** | Document texte (lettre, CV, email long) | Haute |
+| **floo_summarize** | Résumer article, email, document | Moyenne |
+| **floo_qr** | Générer QR code | Basse |
+| **floo_chart** | Graphiques / charts | Basse |
 
 ---
 
