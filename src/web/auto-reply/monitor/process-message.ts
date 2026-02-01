@@ -35,6 +35,7 @@ import type { WebInboundMsg } from "../types.js";
 import { elide } from "../util.js";
 import { flooCheckCredits, flooUseCredit } from "../../floo-credits.js";
 import { flooCheckUserLinked, flooVerifyCode } from "../../floo-verify-code.js";
+import { logInteraction } from "../../../agents/tools/floo-api-tools.js";
 import { maybeSendAckReaction } from "./ack-reaction.js";
 import { formatGroupMembers } from "./group-members.js";
 import { trackBackgroundTask, updateLastRouteInBackground } from "./last-route.js";
@@ -127,6 +128,60 @@ export async function processMessage(params: {
   const storePath = resolveStorePath(params.cfg.session?.store, {
     agentId: params.route.agentId,
   });
+
+  // Floo: Transcription automatique des messages vocaux
+  let transcribedText: string | undefined;
+  if (params.msg.mediaType?.startsWith("audio/") && params.msg.mediaPath) {
+    try {
+      // Lire le fichier audio et l'envoyer en base64 à l'API
+      const fs = await import("node:fs/promises");
+      const audioBuffer = await fs.readFile(params.msg.mediaPath);
+      const audioBase64 = audioBuffer.toString("base64");
+      const format = params.msg.mediaType.split("/")[1]?.split(";")[0] || "ogg";
+
+      // Appeler l'API de transcription avec le contenu base64
+      const base = process.env.FLOO_API_BASE_URL?.trim().replace(/\/$/, "");
+      const key = process.env.FLOO_GATEWAY_API_KEY?.trim();
+      if (base && key) {
+        const res = await fetch(`${base}/api/tools/transcribe`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-Key": key,
+          },
+          body: JSON.stringify({ audioBase64, format }),
+        });
+        if (res.ok) {
+          const data = (await res.json()) as { success?: boolean; transcription?: string };
+          if (data.success && data.transcription) {
+            transcribedText = data.transcription;
+            whatsappInboundLog.info(
+              `Floo: Voice message transcribed (${transcribedText.length} chars)`,
+            );
+            // Log l'interaction pour l'entraînement
+            logInteraction({
+              phoneNumber: params.msg.senderE164 ?? params.msg.from,
+              sessionId: params.route.sessionKey,
+              messageType: "voice_transcription",
+              content: transcribedText,
+              metadata: { mediaType: params.msg.mediaType },
+            }).catch(() => {});
+          }
+        }
+      }
+    } catch (err) {
+      whatsappInboundLog.warn(`Floo: Voice transcription failed: ${String(err)}`);
+    }
+  }
+
+  // Si on a transcrit un vocal, on l'ajoute au body du message
+  if (transcribedText) {
+    const originalBody = params.msg.body ?? "";
+    params.msg.body = originalBody
+      ? `${originalBody}\n\n[Vocal transcrit]: ${transcribedText}`
+      : `[Vocal]: ${transcribedText}`;
+  }
+
   const envelopeOptions = resolveEnvelopeFormatOptions(params.cfg);
   const previousTimestamp = readSessionUpdatedAt({
     storePath,

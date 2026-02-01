@@ -120,3 +120,82 @@ model Session {
   @@index([userId])
   @@index([phoneNumber])
 }
+
+// Interactions pour collecte de données d'entraînement
+model Interaction {
+  id          String   @id @default(cuid())
+
+  // Contexte utilisateur
+  userId      String?
+  phoneNumber String?
+  sessionId   String?
+
+  // Type d'interaction
+  messageType String   // "user" | "assistant" | "tool_call" | "tool_result" | "error"
+
+  // Contenu
+  content     String?  @db.Text
+
+  // Outils
+  toolName    String?
+  toolInput   String?  @db.Text // JSON
+  toolOutput  String?  @db.Text // JSON
+
+  // Métadonnées LLM
+  model       String?
+  tokensUsed  Int?
+  latencyMs   Int?
+
+  // Résultat
+  success     Boolean  @default(true)
+  errorMessage String? @db.Text
+
+  // Données additionnelles
+  metadata    String?  @db.Text // JSON
+
+  createdAt   DateTime @default(now())
+
+  @@map("interactions")
+  @@index([userId])
+  @@index([phoneNumber])
+  @@index([messageType])
+  @@index([toolName])
+  @@index([createdAt])
+}
+
+// Notes utilisateur (mémoire persistante)
+model Note {
+  id          String   @id @default(cuid())
+  userId      String?
+  phoneNumber String?
+
+  title       String?
+  content     String   @db.Text
+  tags        String?  // Comma-separated tags
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("notes")
+  @@index([userId])
+  @@index([phoneNumber])
+}
+
+// Rappels utilisateur
+model Reminder {
+  id          String   @id @default(cuid())
+  userId      String?
+  phoneNumber String?
+
+  message     String
+  remindAt    DateTime
+  sent        Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+
+  @@map("reminders")
+  @@index([userId])
+  @@index([phoneNumber])
+  @@index([remindAt])
+  @@index([sent])
+}

@@ -119,6 +119,69 @@ const FlooChartSchema = Type.Object({
   }),
 });
 
+const FlooTranslateSchema = Type.Object({
+  text: Type.String({ description: "Texte à traduire." }),
+  targetLang: Type.String({ description: "Langue cible (ex: 'en', 'fr', 'es', 'wolof')." }),
+  sourceLang: Type.Optional(
+    Type.String({ description: "Langue source (optionnel, auto-détecté)." }),
+  ),
+});
+
+const FlooWeatherSchema = Type.Object({
+  city: Type.String({ description: "Nom de la ville (ex: 'Abidjan', 'Dakar')." }),
+  country: Type.Optional(Type.String({ description: "Pays (optionnel)." })),
+});
+
+const FlooNewsSchema = Type.Object({
+  topic: Type.Optional(
+    Type.String({ description: "Sujet des actualités (ex: 'économie', 'sport')." }),
+  ),
+  country: Type.Optional(Type.String({ description: "Pays (ex: 'ci', 'sn', 'fr')." })),
+});
+
+const FlooReminderSchema = Type.Object({
+  action: Type.Union([Type.Literal("create"), Type.Literal("list"), Type.Literal("delete")], {
+    description: "create: créer un rappel. list: lister les rappels. delete: supprimer.",
+  }),
+  message: Type.Optional(Type.String({ description: "Message du rappel (pour create)." })),
+  remindAt: Type.Optional(Type.String({ description: "Date/heure ISO du rappel (pour create)." })),
+  reminderId: Type.Optional(Type.String({ description: "ID du rappel (pour delete)." })),
+});
+
+const FlooNotesSchema = Type.Object({
+  action: Type.Union(
+    [
+      Type.Literal("create"),
+      Type.Literal("list"),
+      Type.Literal("search"),
+      Type.Literal("get"),
+      Type.Literal("delete"),
+    ],
+    { description: "Action: create, list, search, get, delete." },
+  ),
+  title: Type.Optional(Type.String({ description: "Titre de la note (pour create)." })),
+  content: Type.Optional(Type.String({ description: "Contenu de la note (pour create)." })),
+  tags: Type.Optional(Type.Array(Type.String(), { description: "Tags (pour create)." })),
+  query: Type.Optional(Type.String({ description: "Recherche (pour search)." })),
+  noteId: Type.Optional(Type.String({ description: "ID de la note (pour get/delete)." })),
+});
+
+const FlooTranscribeSchema = Type.Object({
+  audioUrl: Type.Optional(Type.String({ description: "URL du fichier audio à transcrire." })),
+  audioBase64: Type.Optional(Type.String({ description: "Audio encodé en base64." })),
+  format: Type.Optional(Type.String({ description: "Format audio (ogg, mp3, wav). Défaut: ogg." })),
+});
+
+const FlooLogInteractionSchema = Type.Object({
+  messageType: Type.String({ description: "Type: user, assistant, tool_call, tool_result." }),
+  content: Type.Optional(Type.String({ description: "Contenu du message." })),
+  toolName: Type.Optional(Type.String({ description: "Nom de l'outil." })),
+  toolInput: Type.Optional(Type.Unknown({ description: "Entrée de l'outil (JSON)." })),
+  toolOutput: Type.Optional(Type.Unknown({ description: "Sortie de l'outil (JSON)." })),
+  success: Type.Optional(Type.Boolean({ description: "Succès de l'opération." })),
+  metadata: Type.Optional(Type.Unknown({ description: "Métadonnées additionnelles." })),
+});
+
 function getBaseUrl(): string | undefined {
   const u = process.env[BASE_URL_ENV]?.trim();
   if (!u) return undefined;
@@ -592,4 +655,255 @@ export function createFlooChartTool(): AnyAgentTool | null {
       return jsonResult({ ok: true, chartUrl: d.chartUrl ?? null });
     },
   };
+}
+
+export function createFlooTranslateTool(): AnyAgentTool | null {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  if (!base || !key) return null;
+
+  return {
+    label: "Floo Translate",
+    name: "floo_translate",
+    description:
+      "Traduit un texte vers une autre langue. Paramètres: text, targetLang (ex: 'en', 'fr', 'wolof'), sourceLang (optionnel).",
+    parameters: FlooTranslateSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const text = readStringParam(params, "text", { required: true });
+      const targetLang = readStringParam(params, "targetLang", { required: true });
+      const sourceLang = (params.sourceLang as string) || undefined;
+      const { ok, data, error } = await flooFetch(
+        "/api/tools/translate",
+        { text, targetLang, sourceLang },
+        key,
+      );
+      if (!ok)
+        return jsonResult({
+          ok: false,
+          error: error || "floo_translate failed",
+          translation: null,
+        });
+      const d = data as { translation?: string };
+      return jsonResult({ ok: true, translation: d.translation ?? null });
+    },
+  };
+}
+
+export function createFlooWeatherTool(): AnyAgentTool | null {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  if (!base || !key) return null;
+
+  return {
+    label: "Floo Weather",
+    name: "floo_weather",
+    description:
+      "Obtient la météo actuelle et les prévisions pour une ville. Paramètres: city, country (optionnel).",
+    parameters: FlooWeatherSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const city = readStringParam(params, "city", { required: true });
+      const country = (params.country as string) || undefined;
+      const { ok, data, error } = await flooFetch("/api/tools/weather", { city, country }, key);
+      if (!ok)
+        return jsonResult({ ok: false, error: error || "floo_weather failed", weather: null });
+      const d = data as Record<string, unknown>;
+      return jsonResult({ ok: true, ...d });
+    },
+  };
+}
+
+export function createFlooNewsTool(): AnyAgentTool | null {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  if (!base || !key) return null;
+
+  return {
+    label: "Floo News",
+    name: "floo_news",
+    description:
+      "Récupère les actualités récentes. Paramètres: topic (optionnel), country (ex: 'ci', 'sn').",
+    parameters: FlooNewsSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const topic = (params.topic as string) || undefined;
+      const country = (params.country as string) || undefined;
+      const { ok, data, error } = await flooFetch("/api/tools/news", { topic, country }, key);
+      if (!ok) return jsonResult({ ok: false, error: error || "floo_news failed", articles: [] });
+      const d = data as Record<string, unknown>;
+      return jsonResult({ ok: true, ...d });
+    },
+  };
+}
+
+export function createFlooReminderTool(senderE164: string | null | undefined): AnyAgentTool | null {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  const phone = senderE164?.trim();
+  if (!base || !key || !phone) return null;
+
+  return {
+    label: "Floo Reminder",
+    name: "floo_reminder",
+    description:
+      "Gère les rappels. Actions: create (message + remindAt), list, delete (reminderId).",
+    parameters: FlooReminderSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const body: Record<string, unknown> = { phoneNumber: phone };
+      body.action = params.action;
+      if (params.message) body.message = params.message;
+      if (params.remindAt) body.remindAt = params.remindAt;
+      if (params.reminderId) body.reminderId = params.reminderId;
+      const { ok, data, error } = await flooFetch("/api/tools/reminder", body, key);
+      if (!ok) return jsonResult({ ok: false, error: error || "floo_reminder failed" });
+      const d = data as Record<string, unknown>;
+      return jsonResult({ ok: true, ...d });
+    },
+  };
+}
+
+export function createFlooNotesTool(senderE164: string | null | undefined): AnyAgentTool | null {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  const phone = senderE164?.trim();
+  if (!base || !key || !phone) return null;
+
+  return {
+    label: "Floo Notes",
+    name: "floo_notes",
+    description:
+      "Gère les notes (mémoire persistante). Actions: create, list, search, get, delete.",
+    parameters: FlooNotesSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const body: Record<string, unknown> = { phoneNumber: phone };
+      body.action = params.action;
+      if (params.title) body.title = params.title;
+      if (params.content) body.content = params.content;
+      if (params.tags) body.tags = params.tags;
+      if (params.query) body.query = params.query;
+      if (params.noteId) body.noteId = params.noteId;
+      const { ok, data, error } = await flooFetch("/api/tools/notes", body, key);
+      if (!ok) return jsonResult({ ok: false, error: error || "floo_notes failed" });
+      const d = data as Record<string, unknown>;
+      return jsonResult({ ok: true, ...d });
+    },
+  };
+}
+
+export function createFlooTranscribeTool(): AnyAgentTool | null {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  if (!base || !key) return null;
+
+  return {
+    label: "Floo Transcribe",
+    name: "floo_transcribe",
+    description:
+      "Transcrit un fichier audio en texte (Whisper). Paramètres: audioUrl ou audioBase64, format (ogg|mp3|wav).",
+    parameters: FlooTranscribeSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const body: Record<string, unknown> = {};
+      if (params.audioUrl) body.audioUrl = params.audioUrl;
+      if (params.audioBase64) body.audioBase64 = params.audioBase64;
+      if (params.format) body.format = params.format;
+      if (!body.audioUrl && !body.audioBase64) {
+        return jsonResult({
+          ok: false,
+          error: "audioUrl ou audioBase64 requis",
+          transcription: null,
+        });
+      }
+      const { ok, data, error } = await flooFetch("/api/tools/transcribe", body, key);
+      if (!ok)
+        return jsonResult({
+          ok: false,
+          error: error || "floo_transcribe failed",
+          transcription: null,
+        });
+      const d = data as { transcription?: string };
+      return jsonResult({ ok: true, transcription: d.transcription ?? null });
+    },
+  };
+}
+
+export function createFlooLogInteractionTool(
+  senderE164: string | null | undefined,
+  sessionId: string | null | undefined,
+): AnyAgentTool | null {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  if (!base || !key) return null;
+
+  return {
+    label: "Floo Log Interaction",
+    name: "floo_log_interaction",
+    description: "Enregistre une interaction pour l'analyse et l'entraînement. Usage interne.",
+    parameters: FlooLogInteractionSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const body: Record<string, unknown> = {
+        phoneNumber: senderE164,
+        sessionId,
+        messageType: params.messageType,
+      };
+      if (params.content) body.content = params.content;
+      if (params.toolName) body.toolName = params.toolName;
+      if (params.toolInput) body.toolInput = params.toolInput;
+      if (params.toolOutput) body.toolOutput = params.toolOutput;
+      if (params.success !== undefined) body.success = params.success;
+      if (params.metadata) body.metadata = params.metadata;
+      const { ok, error } = await flooFetch("/api/data/log-interaction", body, key);
+      if (!ok) return jsonResult({ ok: false, error: error || "floo_log_interaction failed" });
+      return jsonResult({ ok: true, logged: true });
+    },
+  };
+}
+
+/**
+ * Transcrit un audio via l'API Floo (fonction utilitaire).
+ */
+export async function transcribeAudio(
+  audioUrl: string,
+): Promise<{ ok: boolean; transcription?: string; error?: string }> {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  if (!base || !key) {
+    return { ok: false, error: "FLOO_API_BASE_URL or FLOO_GATEWAY_API_KEY not set" };
+  }
+  const { ok, data, error } = await flooFetch("/api/tools/transcribe", { audioUrl }, key);
+  if (!ok) return { ok: false, error };
+  const d = data as { transcription?: string };
+  return { ok: true, transcription: d.transcription };
+}
+
+/**
+ * Log une interaction via l'API Floo (fonction utilitaire).
+ */
+export async function logInteraction(interaction: {
+  userId?: string;
+  phoneNumber?: string;
+  sessionId?: string;
+  messageType: string;
+  content?: string;
+  toolName?: string;
+  toolInput?: unknown;
+  toolOutput?: unknown;
+  model?: string;
+  tokensUsed?: number;
+  latencyMs?: number;
+  success?: boolean;
+  errorMessage?: string;
+  metadata?: unknown;
+}): Promise<{ ok: boolean; error?: string }> {
+  const base = getBaseUrl();
+  const key = getApiKey();
+  if (!base || !key) {
+    return { ok: false, error: "FLOO_API_BASE_URL or FLOO_GATEWAY_API_KEY not set" };
+  }
+  const { ok, error } = await flooFetch("/api/data/log-interaction", interaction, key);
+  return { ok, error };
 }

@@ -23,13 +23,20 @@ import {
   createFlooGmailListTool,
   createFlooGmailSendTool,
   createFlooImageGenerateTool,
+  createFlooLogInteractionTool,
+  createFlooNewsTool,
+  createFlooNotesTool,
   createFlooPdfGenerateTool,
   createFlooPresentationTool,
   createFlooQrTool,
+  createFlooReminderTool,
   createFlooReservationTool,
   createFlooScrapeTool,
   createFlooSearchTool,
   createFlooSummarizeTool,
+  createFlooTranscribeTool,
+  createFlooTranslateTool,
+  createFlooWeatherTool,
 } from "./tools/floo-api-tools.js";
 import { createWebFetchTool, createWebSearchTool } from "./tools/web-tools.js";
 import { createTtsTool } from "./tools/tts-tool.js";
@@ -100,6 +107,16 @@ export function createClawdbotTools(options?: {
   const flooQrTool = createFlooQrTool();
   const flooSummarizeTool = createFlooSummarizeTool();
   const flooChartTool = createFlooChartTool();
+  const flooTranslateTool = createFlooTranslateTool();
+  const flooWeatherTool = createFlooWeatherTool();
+  const flooNewsTool = createFlooNewsTool();
+  const flooReminderTool = createFlooReminderTool(options?.senderE164);
+  const flooNotesTool = createFlooNotesTool(options?.senderE164);
+  const flooTranscribeTool = createFlooTranscribeTool();
+  const flooLogInteractionTool = createFlooLogInteractionTool(
+    options?.senderE164,
+    options?.agentSessionKey,
+  );
   const tools: AnyAgentTool[] = [
     createBrowserTool({
       sandboxBridgeUrl: options?.sandboxBrowserBridgeUrl,
@@ -179,6 +196,13 @@ export function createClawdbotTools(options?: {
     ...(flooQrTool ? [flooQrTool] : []),
     ...(flooSummarizeTool ? [flooSummarizeTool] : []),
     ...(flooChartTool ? [flooChartTool] : []),
+    ...(flooTranslateTool ? [flooTranslateTool] : []),
+    ...(flooWeatherTool ? [flooWeatherTool] : []),
+    ...(flooNewsTool ? [flooNewsTool] : []),
+    ...(flooReminderTool ? [flooReminderTool] : []),
+    ...(flooNotesTool ? [flooNotesTool] : []),
+    ...(flooTranscribeTool ? [flooTranscribeTool] : []),
+    ...(flooLogInteractionTool ? [flooLogInteractionTool] : []),
     ...(imageTool ? [imageTool] : []),
   ];
 
