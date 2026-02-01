@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server"
+import { isGatewayAuthenticated } from "@/lib/gateway-auth"
 
 /**
  * API de transcription audio (Voice-to-Text) utilisant OpenAI Whisper
- * Accepte un fichier audio ou une URL audio
+ * Accepte un fichier audio ou une URL audio.
+ * Auth: X-Floo-Gateway-Key (gateway) ou x-api-key (legacy).
  */
 export async function POST(req: Request) {
   try {
-    const apiKey = req.headers.get("x-api-key")
-    if (apiKey !== process.env.FLOO_GATEWAY_API_KEY) {
+    const gatewayOk = isGatewayAuthenticated(req)
+    const legacyKey = req.headers.get("x-api-key")?.trim()
+    const secret = process.env.FLOO_GATEWAY_API_KEY?.trim()
+    if (!gatewayOk && (!secret || legacyKey !== secret)) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
     }
 

@@ -147,7 +147,7 @@ export async function processMessage(params: {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-API-Key": key,
+            "X-Floo-Gateway-Key": key,
           },
           body: JSON.stringify({ audioBase64, format }),
         });
