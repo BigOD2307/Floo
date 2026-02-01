@@ -239,7 +239,7 @@ function PaymentPageContent() {
           <div className="p-1.5 bg-neutral-900/50 rounded-xl flex relative border border-white/5 backdrop-blur-sm">
             <div
               id="tab-bg"
-              className="absolute top-1.5 left-1.5 w-[calc(50%-6px)] h-[calc(100%-12px)] bg-[#1A1A1A] border border-white/10 rounded-lg shadow-lg transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"
+              className="absolute top-1.5 left-1.5 w-[calc(50%-6px)] h-[calc(100%-12px)] bg-[#1A1A1A] border border-white/10 rounded-lg shadow-lg transition-all duration-300 ease-in-out"
               style={{ left: mode === "momo" ? "6px" : "50%" }}
             ></div>
 

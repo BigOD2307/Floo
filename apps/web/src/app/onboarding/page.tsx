@@ -174,7 +174,7 @@ export default function OnboardingPage() {
       {/* INTRO STORYTELLING SCREEN */}
       <div
         id="intro-screen"
-        className="fixed inset-0 z-[100] bg-[#030303] flex items-center justify-center overflow-hidden transition-all duration-[1200ms] ease-[cubic-bezier(0.77,0,0.175,1)]"
+        className="fixed inset-0 z-[100] bg-[#030303] flex items-center justify-center overflow-hidden transition-all duration-1000 ease-out"
       >
         {/* Ambient BG */}
         <div className="absolute inset-0 z-0">

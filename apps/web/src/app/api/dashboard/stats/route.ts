@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
+
+export const dynamic = "force-dynamic"
 import { authOptions } from "@/lib/auth-options"
 import { prisma } from "@/lib/db"
 
