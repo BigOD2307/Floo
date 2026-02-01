@@ -7,6 +7,7 @@ import type { EmbeddedPiSubscribeContext } from "./pi-embedded-subscribe.handler
 import {
   extractToolErrorMessage,
   extractToolResultText,
+  extractMediaUrlsFromFlooToolResult,
   extractMessagingToolSend,
   isToolResultError,
   sanitizeToolResult,
@@ -215,6 +216,18 @@ export function handleToolExecutionEnd(
     const outputText = extractToolResultText(sanitizedResult);
     if (outputText) {
       ctx.emitToolOutput(toolName, meta, outputText);
+    }
+  }
+
+  // Deliver media URLs from Floo tools (image, PDF, QR, etc.) to WhatsApp/messaging
+  if (!isToolError && ctx.params.onBlockReply) {
+    const mediaUrls = extractMediaUrlsFromFlooToolResult(toolName, sanitizedResult);
+    if (mediaUrls.length > 0) {
+      ctx.log.debug(`Delivering ${mediaUrls.length} media URL(s) from tool ${toolName} to user`);
+      void ctx.params.onBlockReply({
+        text: undefined,
+        mediaUrls,
+      });
     }
   }
 }

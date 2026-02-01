@@ -114,6 +114,41 @@ export function extractToolErrorMessage(result: unknown): string | undefined {
   return normalizeToolErrorText(text);
 }
 
+/** Floo tools that return media URLs to deliver to the user. */
+const FLOO_MEDIA_TOOLS = [
+  "floo_image_generate",
+  "floo_pdf_generate",
+  "floo_presentation",
+  "floo_document",
+  "floo_qr",
+  "floo_chart",
+] as const;
+
+/** Extract media URLs from Floo tool results (imageUrl, pdfUrl, qrUrl, etc.). */
+export function extractMediaUrlsFromFlooToolResult(toolName: string, result: unknown): string[] {
+  const normalized = toolName.trim().toLowerCase();
+  if (!FLOO_MEDIA_TOOLS.includes(normalized as (typeof FLOO_MEDIA_TOOLS)[number])) return [];
+
+  const text = extractToolResultText(result);
+  if (!text) return [];
+
+  try {
+    const parsed = JSON.parse(text) as Record<string, unknown>;
+    if (!parsed || typeof parsed !== "object") return [];
+    const urls: string[] = [];
+    const candidates = ["imageUrl", "pdfUrl", "pptxUrl", "qrUrl", "chartUrl"] as const;
+    for (const key of candidates) {
+      const val = parsed[key];
+      if (typeof val === "string" && val.trim().startsWith("http")) {
+        urls.push(val.trim());
+      }
+    }
+    return urls;
+  } catch {
+    return [];
+  }
+}
+
 export function extractMessagingToolSend(
   toolName: string,
   args: Record<string, unknown>,
