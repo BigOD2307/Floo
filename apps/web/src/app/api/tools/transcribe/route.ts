@@ -66,9 +66,9 @@ export async function POST(req: Request) {
       )
     }
 
-    // Créer le FormData pour Whisper
+    // Créer le FormData pour Whisper (Uint8Array compatible BlobPart)
     const formData = new FormData()
-    formData.append("file", new Blob([audioBuffer]), filename)
+    formData.append("file", new Blob([new Uint8Array(audioBuffer)]), filename)
     formData.append("model", "whisper-1")
     formData.append("language", "fr") // Français par défaut
     formData.append("response_format", "json")

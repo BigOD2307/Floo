@@ -91,7 +91,7 @@ export async function generatePdf(title: string, content: string): Promise<PdfGe
     }
 
     const pdfBytes = await doc.save()
-    const blob = new Blob([pdfBytes], { type: "application/pdf" })
+    const blob = new Blob([pdfBytes as BlobPart], { type: "application/pdf" })
     const filename = `floo-${Date.now()}.pdf`
 
     const result = await put(filename, blob, {

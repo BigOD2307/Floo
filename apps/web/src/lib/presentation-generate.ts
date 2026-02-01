@@ -54,7 +54,7 @@ export async function generatePresentation(
     }
 
     const buffer = (await pptx.write({ outputType: "nodebuffer" })) as Buffer
-    const blob = new Blob([buffer], {
+    const blob = new Blob([new Uint8Array(buffer)], {
       type: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
     })
     const filename = `floo-${Date.now()}.pptx`

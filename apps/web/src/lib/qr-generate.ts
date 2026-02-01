@@ -25,7 +25,7 @@ export async function generateQr(data: string): Promise<QrGenerateResult> {
       margin: 2,
     })
 
-    const blob = new Blob([buffer], { type: "image/png" })
+    const blob = new Blob([new Uint8Array(buffer)], { type: "image/png" })
     const filename = `floo-qr-${Date.now()}.png`
 
     const result = await put(filename, blob, {
